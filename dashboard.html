@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chetak Creation - Secret Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF9B31;
+            --secondary: #28D1B4;
+            --dark: #1e1e1e;
+            --light: #f8f9fa;
+            --gray: #e9ecef;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--light); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
+        nav { background-color: var(--dark); color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
+        .container { max-width: 950px; margin: 30px auto; padding: 20px; flex: 1; width: 100%; }
+
+        .login-box { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); border-top: 5px solid var(--primary); max-width: 450px; margin: 0 auto; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .error-msg { color: #d9534f; margin-top: 12px; font-size: 14px; text-align: center; }
+
+        .dashboard-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--gray); padding-bottom: 15px; }
+        .logout-btn { background: #d9534f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        .admin-tabs { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+        .admin-tab-btn { padding: 10px 20px; background: var(--gray); border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .admin-tab-btn.active { background: var(--primary); color: white; }
+        .admin-panel { display: none; }
+        .admin-panel.active { display: block; }
+
+        .item-card-admin { background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
+        .item-actions button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 5px; }
+        .btn-edit { background: #ffc107; color: #000; }
+        .btn-del { background: #d9534f; color: white; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <span class="logo"><i class="fa-solid fa-shield-halved"></i> Chetak Creation - Admin Dashboard</span>
+    </nav>
+
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen" class="login-box">
+            <h2>Admin Login</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required placeholder>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder>
+                </div>
+                <button type="submit" class="btn-submit">Login</button>
+                <div id="errorMsg" class="error-msg"></div>
+            </form>
+        </div>
+
+        <!-- Dashboard Panel -->
+        <div id="admin-dashboard" class="dashboard-container hidden">
+            <div class="dashboard-header">
+                <h2>Control Panel</h2>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="switchAdminTab('upload-panel', event)">Publish / Add New</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('manage-panel', event)">Manage Existing Works</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('settings-panel', event)">Site Settings (Logo & Social)</button>
+            </div>
+
+            <!-- Panel 1: Upload Works -->
+            <div id="upload-panel" class="admin-panel active">
+                <h3 id="formTitleHeading">Publish New Work / Media</h3>
+                <form id="uploadForm" onsubmit="handleUpload(event)" style="margin-top: 15px;">
+                    <input type="hidden" id="editIndex" value="">
+                    <input type="hidden" id="existingFileData" value="">
+                    <div class="form-group">
+                        <label>Select Category</label>
+                        <select id="uploadCategory" required>
+                            <option value="designs">Design Work</option>
+                            <option value="writings">Blog / Writing</option>
+                            <option value="editing">Editing Work</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="uploadTitle" required placeholder="Enter title">
+                    </div>
+                    <div class="form-group">
+                        <label>Description / Content</label>
+                        <textarea id="uploadDesc" rows="4" required placeholder="Enter full details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Media File (Poster / Video / PDF)</label>
+                        <input type="file" id="mediaFileInput">
+                        <small style="color: #666;">(Leave empty if editing without changing file)</small>
+                    </div>
+                    <button type="submit" class="btn-submit" id="publishBtn">Publish Live</button>
+                </form>
+            </div>
+
+            <!-- Panel 2: Manage Existing Works -->
+            <div id="manage-panel" class="admin-panel">
+                <h3>Manage Published Content</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Select Category to View</label>
+                    <select id="manageCategory" onchange="loadManageList()">
+                        <option value="designs">Design Work</option>
+                        <option value="writings">Blog / Writing</option>
+                        <option value="editing">Editing Work</option>
+                    </select>
+                </div>
+                <div id="manageItemsList" style="margin-top: 15px;">
+                    <!-- Items will load here -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Settings (Logo & Social Links) -->
+            <div id="settings-panel" class="admin-panel">
+                <h3>Website Settings & Social Links</h3>
+                <form id="settingsForm" onsubmit="saveSettings(event)" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label>Site Logo Title / Text</label>
+                        <input type="text" id="siteLogoInput" required placeholder="Chetak Creation">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-youtube"></i> YouTube Link</label>
+                        <input type="url" id="socialYoutube" placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-instagram"></i> Instagram Link</label>
+                        <input type="url" id="socialInstagram" placeholder="https://instagram.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-facebook"></i> Facebook Link</label>
+                        <input type="url" id="socialFacebook" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-whatsapp"></i> WhatsApp Link / Number</label>
+                        <input type="text" id="socialWhatsapp" placeholder="https://wa.me/...">
+                    </div>
+                    <button type="submit" class="btn-submit">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if(user === "admin" && pass === "vsk2026") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                loadSettings();
+                loadManageList();
+            } else {
+                errorMsg.innerText = "Invalid username or password!";
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        function switchAdminTab(panelId, event) {
+            document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(panelId === 'manage-panel') loadManageList();
+            if(panelId === 'settings-panel') loadSettings();
+        }
+
+        function handleUpload(event) {
+            event.preventDefault();
+            const category = document.getElementById('uploadCategory').value;
+            const title = document.getElementById('uploadTitle').value;
+            const desc = document.getElementById('uploadDesc').value;
+            const fileInput = document.getElementById('mediaFileInput');
+            const editIndex = document.getElementById('editIndex').value;
+            const existingFileData = document.getElementById('existingFileData').value;
+
+            let storageKey = 'cc_' + category;
+            let items = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    saveItemData(items, category, title, desc, e.target.result, file.name, file.type, editIndex);
+                };
+
+                if (file.size > 2 * 1024 * 1024) {
+                    const fileUrl = URL.createObjectURL(file);
+                    saveItemData(items, category, title, desc, fileUrl, file.name, file.type, editIndex);
+                } else {
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                // No new file uploaded, keep existing file data if editing
+                saveItemData(items, category, title, desc, existingFileData, "", "", editIndex);
+            }
+        }
+
+        function saveItemData(items, category, title, desc, fileData, fileName, fileType, editIndex) {
+            const newItem = {
+                title: title,
+                desc: desc,
+                fileData: fileData || "",
+                fileName: fileName || "",
+                fileType: fileType || ""
+            };
+
+            if (editIndex !== "") {
+                if(!newItem.fileData) {
+                    newItem.fileData = items[editIndex].fileData;
+                    newItem.fileName = items[editIndex].fileName;
+                    newItem.fileType = items[editIndex].fileType;
+                }
+                items[editIndex] = newItem;
+                document.getElementById('editIndex').value = "";
+                document.getElementById('formTitleHeading').innerText = "Publish New Work / Media";
+            } else {
+                items.push(newItem);
+            }
+
+            localStorage.setItem('cc_' + category, JSON.stringify(items));
+            alert("Successfully saved and updated live!");
+            document.getElementById('uploadForm').reset();
+            loadManageList();
+        }
+
+        function loadManageList() {
+            const category = document.getElementById('manageCategory').value;
+            const container = document.getElementById('manageItemsList');
+            let items = JSON.parse(localStorage.getItem('cc_' + category)) || [];
+
+            if(items.length === 0) {
+                container.innerHTML = `<p style="color:#777;">No items found in this category.</p>`;
+                return;
+            }
+
+            let html = '';
+            items.forEach((item, index) => {
+                html += `
+                    <div class="item-card-admin">
+                        <div>
+                            <strong>${item.title}</strong>
+                            <p style="font-size:12px; color:#666; max-width:400px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.desc}</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-edit" onclick="editItem('${category}', ${index})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="btn-del" onclick="deleteItem('${category}', ${index})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function editItem(category, index) {
+            let items = JSON.parse(localStorage.getItem('cc_' + category)) || [];
+            let item = items[index];
+
+            document.getElementById('uploadCategory').value = category;
+            document.getElementById('uploadTitle').value = item.title;
+            document.getElementById('uploadDesc').value = item.desc;
+            document.getElementById('editIndex').value = index;
+            document.getElementById('existingFileData').value = item.fileData;
+            document.getElementById('formTitleHeading').innerText = "Edit Item (" + item.title + ")";
+
+            // Switch to upload tab
+            document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('upload-panel').classList.add('active');
+            document.querySelectorAll('.admin-tab-btn')[0].classList.add('active');
+        }
+
+        function deleteItem(category, index) {
+            if(confirm("Are you sure you want to delete this item?")) {
+                let items = JSON.parse(localStorage.getItem('cc_' + category)) || [];
+                items.splice(index, 1);
+                localStorage.setItem('cc_' + category, JSON.stringify(items));
+                loadManageList();
+            }
+        }
+
+        function saveSettings(event) {
+            event.preventDefault();
+            const settings = {
+                logo: document.getElementById('siteLogoInput').value,
+                youtube: document.getElementById('socialYoutube').value,
+                instagram: document.getElementById('socialInstagram').value,
+                facebook: document.getElementById('socialFacebook').value,
+                whatsapp: document.getElementById('socialWhatsapp').value
+            };
+            localStorage.setItem('cc_settings', JSON.stringify(settings));
+            alert("Settings updated successfully!");
+        }
+
+        function loadSettings() {
+            let settings = JSON.parse(localStorage.getItem('cc_settings')) || {
+                logo: "Chetak Creation",
+                youtube: "https://youtube.com",
+                instagram: "https://instagram.com",
+                facebook: "https://facebook.com",
+                whatsapp: "https://wa.me"
+            };
+
+            document.getElementById('siteLogoInput').value = settings.logo;
+            document.getElementById('socialYoutube').value = settings.youtube;
+            document.getElementById('socialInstagram').value = settings.instagram;
+            document.getElementById('socialFacebook').value = settings.facebook;
+            document.getElementById('socialWhatsapp').value = settings.whatsapp;
+        }
+    </script>
+</body>
+</html>
+
