@@ -34,7 +34,6 @@
     </nav>
 
     <div class="container">
-        <!-- Login Screen -->
         <div id="loginScreen" class="login-box" style="max-width: 400px; margin: 0 auto;">
             <h2>Admin Login</h2>
             <form onsubmit="handleLogin(event)" style="margin-top: 15px;">
@@ -51,14 +50,12 @@
             </form>
         </div>
 
-        <!-- Dashboard Panel -->
         <div id="dashScreen" class="dash-box hidden">
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('posts-panel', this)">Manage Posts</button>
                 <button class="tab-btn" onclick="switchAdminTab('chat-panel', this)">User Chats & Replies</button>
             </div>
 
-            <!-- Posts Management -->
             <div id="posts-panel" class="panel active">
                 <h3>Add / Edit Posts</h3>
                 <form id="postForm" onsubmit="handleSavePost(event)" style="margin-top: 15px;">
@@ -122,7 +119,6 @@
                 <div id="adminPostsList" style="margin-top: 15px;">ലോഡ് ചെയ്യുന്നു...</div>
             </div>
 
-            <!-- Chat & Replies Management -->
             <div id="chat-panel" class="panel">
                 <h3>User Chat Inquiries</h3>
                 <div id="adminChatList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;">ലോഡ് ചെയ്യുന്നു...</div>
@@ -131,15 +127,15 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA
-        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';'YOUR_SUPABASE_KEY';'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'
+        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'
         let supabaseClient = null;
 
         try {
             if (window.supabase) {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Supabase Init Error:", e); }
 
         function handleLogin(e) {
             e.preventDefault();
@@ -172,7 +168,7 @@
 
         async function handleSavePost(e) {
             e.preventDefault();
-            if (!supabaseClient) { alert('Supabase connectedയല്ല!'); return; }
+            if (!supabaseClient) { alert('Supabase കണക്റ്റ് ചെയ്തിട്ടില്ല!'); return; }
 
             const id = document.getElementById('postId').value;
             const sanghajilla = document.getElementById('postSanghajilla').value;
@@ -183,53 +179,64 @@
             const file = fileInput.files[0];
 
             let file_url = '';
-            if (file) {
-                const fileName = Date.now() + '_' + file.name;
-                const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                if (!upErr) {
+            try {
+                if (file) {
+                    const fileName = Date.now() + '_' + file.name;
+                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (upErr) throw upErr;
                     const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
                     file_url = pubData.publicUrl;
                 }
+
+                let postData = { sanghajilla, tab_category, title, description };
+                if (file_url) postData.file_url = file_url;
+
+                if (id) {
+                    const { error: updErr } = await supabaseClient.from('yuva_posts').update(postData).eq('id', id);
+                    if (updErr) throw updErr;
+                    alert('പോസ്റ്റ് വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു!');
+                } else {
+                    const { error: insErr } = await supabaseClient.from('yuva_posts').insert([postData]);
+                    if (insErr) throw insErr;
+                    alert('പുതിയ പോസ്റ്റ് വിജയകരമായി പബ്ലിഷ് ചെയ്തു!');
+                }
+
+                resetPostForm();
+                loadAdminPosts();
+            } catch (err) {
+                console.error("Save Post Error:", err);
+                alert("പോസ്റ്റ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + (err.message || err));
             }
-
-            let postData = { sanghajilla, tab_category, title, description };
-            if (file_url) postData.file_url = file_url;
-
-            if (id) {
-                await supabaseClient.from('yuva_posts').update(postData).eq('id', id);
-                alert('പോസ്റ്റ് വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു!');
-            } else {
-                await supabaseClient.from('yuva_posts').insert([postData]);
-                alert('പുതിയ പോസ്റ്റ് വിജയകരമായി പബ്ലിഷ് ചെയ്തു!');
-            }
-
-            resetPostForm();
-            loadAdminPosts();
         }
 
         async function loadAdminPosts() {
             if (!supabaseClient) return;
-            const { data } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
-            let html = '';
-            if (data && data.length > 0) {
-                data.forEach(p => {
-                    html += `
-                        <div class="item-card">
-                            <div>
-                                <strong>${p.title || 'Untitled'}</strong>
-                                <p style="font-size:12px; color:#666;">${p.sanghajilla} | ${p.tab_category}</p>
+            try {
+                const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
+                if (error) throw error;
+                let html = '';
+                if (data && data.length > 0) {
+                    data.forEach(p => {
+                        html += `
+                            <div class="item-card">
+                                <div>
+                                    <strong>${p.title || 'Untitled'}</strong>
+                                    <p style="font-size:12px; color:#666;">${p.sanghajilla} | ${p.tab_category}</p>
+                                </div>
+                                <div>
+                                    <button class="btn" onclick="editPost(${p.id}, '${p.sanghajilla}', '${p.tab_category}', \`${p.title || ''}\`, \`${p.description || ''}\`)">Edit</button>
+                                    <button class="btn btn-danger" onclick="deletePost(${p.id})">Delete</button>
+                                </div>
                             </div>
-                            <div>
-                                <button class="btn" onclick="editPost(${p.id}, '${p.sanghajilla}', '${p.tab_category}', \`${p.title || ''}\`, \`${p.description || ''}\`)">Edit</button>
-                                <button class="btn btn-danger" onclick="deletePost(${p.id})">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                html = '<p>പോസ്റ്റുകൾ ഒന്നുമില്ല.</p>';
+                        `;
+                    });
+                } else {
+                    html = '<p>പോസ്റ്റുകൾ ഒന്നുമില്ല.</p>';
+                }
+                document.getElementById('adminPostsList').innerHTML = html;
+            } catch (err) {
+                console.error("Load Posts Error:", err);
             }
-            document.getElementById('adminPostsList').innerHTML = html;
         }
 
         function editPost(id, sanghajilla, tab, title, desc) {
@@ -243,8 +250,10 @@
 
         async function deletePost(id) {
             if (confirm('ഈ പോസ്റ്റ് ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ?')) {
-                await supabaseClient.from('yuva_posts').delete().eq('id', id);
-                loadAdminPosts();
+                try {
+                    await supabaseClient.from('yuva_posts').delete().eq('id', id);
+                    loadAdminPosts();
+                } catch (e) { console.error("Delete Error:", e); }
             }
         }
 
@@ -255,26 +264,28 @@
 
         async function loadAdminChats() {
             if (!supabaseClient) return;
-            const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: false });
-            let html = '';
-            if (data && data.length > 0) {
-                data.forEach(c => {
-                    html += `
-                        <div class="item-card" style="flex-direction:column; align-items:flex-start; gap:8px;">
-                            <div><strong>സെൻഡർ: ${c.sender_name}</strong> ${c.is_admin ? '<span style="color:green;">(Admin Replied)</span>' : ''}</div>
-                            <div>സന്ദേശം: ${c.message || 'Media only'}</div>
-                            ${c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:blue;">[Attached File]</a>` : ''}
-                            <div style="width:100%; display:flex; gap:10px; margin-top:5px;">
-                                <input type="text" id="reply_${c.id}" placeholder="മറുപടി എഴുതുക..." style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-                                <button class="btn" onclick="sendAdminReply(${c.id})">Send Reply</button>
+            try {
+                const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: false });
+                let html = '';
+                if (data && data.length > 0) {
+                    data.forEach(c => {
+                        html += `
+                            <div class="item-card" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                                <div><strong>സെൻഡർ: ${c.sender_name}</strong> ${c.is_admin ? '<span style="color:green;">(Admin Replied)</span>' : ''}</div>
+                                <div>സന്ദേശം: ${c.message || 'Media only'}</div>
+                                ${c.file_url ? `<a href="${c.file_url}" target="_blank" style="color:blue;">[Attached File]</a>` : ''}
+                                <div style="width:100%; display:flex; gap:10px; margin-top:5px;">
+                                    <input type="text" id="reply_${c.id}" placeholder="മറുപടി എഴുതുക..." style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                                    <button class="btn" onclick="sendAdminReply(${c.id})">Send Reply</button>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                });
-            } else {
-                html = '<p>ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
-            }
-            document.getElementById('adminChatList').innerHTML = html;
+                        `;
+                    });
+                } else {
+                    html = '<p>ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
+                }
+                document.getElementById('adminChatList').innerHTML = html;
+            } catch (e) { console.error("Load Chats Error:", e); }
         }
 
         async function sendAdminReply(chatId) {
@@ -284,14 +295,19 @@
                 return;
             }
 
-            await supabaseClient.from('yuva_chats').insert([{
-                sender_name: 'Admin',
-                message: replyText,
-                is_admin: true
-            }]);
+            try {
+                await supabaseClient.from('yuva_chats').insert([{
+                    sender_name: 'Admin',
+                    message: replyText,
+                    is_admin: true
+                }]);
 
-            alert('മറുപടി അയച്ചിരിക്കുന്നു!');
-            loadAdminChats();
+                alert('മറുപടി അയച്ചിരിക്കുന്നു!');
+                loadAdminChats();
+            } catch (e) {
+                console.error("Reply Error:", e);
+                alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
+            }
         }
     </script>
 </body>
