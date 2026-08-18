@@ -198,10 +198,7 @@
                         <label>Upload PNG Logo (Transparent Image)</label>
                         <input type="file" id="siteLogoFile" accept="image/png, image/jpeg">
                         <div id="currentLogoPreview" style="margin-top: 10px;"></div>
-                        <button onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)
-
-
-                        </button>
+                        <button type="button" onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px; border-radius:4px;">ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)</button>
                     </div>
                     <div class="form-group">
                         <label><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Facebook Link</label>
@@ -226,6 +223,7 @@
                     <button type="submit" class="btn">Save Settings</button>
                 </form>
             </div>
+
             <!-- 4. Manage Chat -->
             <div id="chat-panel" class="panel">
                 <h3 style="margin-bottom: 20px;">User Chat Inquiries (Messenger Style)</h3>
@@ -406,10 +404,17 @@
                 }
 
                 let settingsObj = { siteTitle, fb, insta, yt, x, wa };
-                if (logo_url) settingsObj.logo_url = logo_url;
+                
+                // നിലവിലുള്ള ലോഗോ ഉണ്ടെങ്കിൽ അത് മാഞ്ഞുപോകാതെ നിലനിർത്തുന്നു
+                let currentSettings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+                if (logo_url) {
+                    settingsObj.logo_url = logo_url;
+                } else if (currentSettings.logo_url) {
+                    settingsObj.logo_url = currentSettings.logo_url;
+                }
 
                 localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
-                alert('സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി സേവ് ചെയ്തു!');
+                alert('സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി സേവ് ചെയ്തു! മെയിൻ പേജ് റിഫ്രഷ് ചെയ്ത് മാറ്റങ്ങൾ കാണുക.');
                 loadSiteSettings();
             } catch (err) {
                 console.error("Settings Error:", err);
@@ -484,6 +489,7 @@
                 console.error("Fetch Window Error:", e);
             }
         }
+
         function formatChatMessage(rawMessage) {
             let contentHtml = rawMessage || '';
             if (contentHtml.includes('[Image:')) {
@@ -506,7 +512,6 @@
             messages.forEach(m => {
                 let bubbleClass = m.is_admin ? 'admin' : 'user';
                 let senderLabel = m.is_admin ? '<b>Admin:</b> ' : `<b>${m.sender_name}:</b> `;
-                
                 let formattedMsg = formatChatMessage(m.message);
 
                 messagesHtml += `
