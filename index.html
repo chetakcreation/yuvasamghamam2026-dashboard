@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YuvaSanghamam 2026 - Admin Dashboard & Chat</title>
+    <title>YuvaSanghamam 2026 - Admin Dashboard & User Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -243,7 +243,7 @@
 
     <script>
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6InNub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
         let supabaseClient = null;
         let activeChatUser = null;
 
@@ -483,31 +483,35 @@
             }
         }
 
+        // മെസ്സേജിലെ ലിങ്കുകളെ ചിത്രങ്ങളോ ഡൗൺലോഡ് ഫയലുകളോ ആയി പാഴ്സ് ചെയ്ത് മാറ്റുന്ന കോഡ് (Helper function)
+        function formatChatMessage(rawMessage) {
+            let contentHtml = rawMessage || '';
+            if (contentHtml.includes('[Image:')) {
+                let parts = contentHtml.split('[Image:');
+                let textPart = parts[0];
+                let imgUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
+                contentHtml = `${textPart}<br><img src="${imgUrl}" style="max-width: 180px; border-radius: 6px; margin-top: 5px; display: block; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">`;
+            } else if (contentHtml.includes('[File:')) {
+                let parts = contentHtml.split('[File:');
+                let textPart = parts[0];
+                let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
+                let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
+                contentHtml = `${textPart}<br><a href="${fileUrl}" target="_blank" download style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; text-decoration: none; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</a>`;
+            }
+            return contentHtml;
+        }
+
         function renderChatWindow(userName, messages) {
             let messagesHtml = '';
             messages.forEach(m => {
                 let bubbleClass = m.is_admin ? 'admin' : 'user';
                 let senderLabel = m.is_admin ? '<b>Admin:</b> ' : `<b>${m.sender_name}:</b> `;
                 
-                let contentHtml = m.message || '';
-                
-                // ഫോട്ടോയോ ഫയലോ ആണെങ്കിൽ അത് നേരിട്ട് കാണുന്ന രീതിയിലേക്ക് മാറ്റുന്നു
-                if (contentHtml.includes('[Image:')) {
-                    let parts = contentHtml.split('[Image:');
-                    let textPart = parts[0];
-                    let imgUrl = parts[1].replace(']', '').trim();
-                    contentHtml = `${textPart}<br><img src="${imgUrl}" style="max-width: 200px; border-radius: 6px; margin-top: 5px; display: block; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">`;
-                } else if (contentHtml.includes('[File:')) {
-                    let parts = contentHtml.split('[File:');
-                    let textPart = parts[0];
-                    let fileUrl = parts[1].replace(']', '').trim();
-                    let fileName = fileUrl.split('/').pop().split('_').pop() || 'Download File';
-                    contentHtml = `${textPart}<br><a href="${fileUrl}" target="_blank" download style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 6px 10px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; text-decoration: none; font-size: 13px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</a>`;
-                }
+                let formattedMsg = formatChatMessage(m.message);
 
                 messagesHtml += `
                     <div class="chat-bubble ${bubbleClass}">
-                        ${senderLabel} ${contentHtml}
+                        ${senderLabel} ${formattedMsg}
                     </div>
                 `;
             });
