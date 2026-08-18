@@ -10,164 +10,126 @@
         :root { --primary: #FF9B31; --secondary: #28D1B4; --dark: #1e1e1e; --light: #f4f6f9; --gray: #e9ecef; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--light); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
-        
         nav { background: var(--dark); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         .nav-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        
         .main-container { display: flex; max-width: 1300px; margin: 30px auto; padding: 0 20px; width: 100%; gap: 30px; flex: 1; }
-        
         .login-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 70vh; }
         .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
-        
         .sidebar { width: 280px; display: flex; flex-direction: column; gap: 10px; }
         .tab-btn { padding: 15px 20px; background: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 15px; text-align: left; display: flex; align-items: center; gap: 12px; color: var(--dark); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s; }
         .tab-btn:hover { background: var(--gray); }
         .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255, 155, 49, 0.3); }
-
         .content-pane { flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 550px; }
         .panel { display: none; }
         .panel.active { display: block; }
         .hidden { display: none !important; }
-
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 11px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        
-        .btn { padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.9; }
+        .btn { padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .btn-danger { background: #d9534f; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
-
         .item-card { background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; }
-
         .chat-container { display: flex; height: 520px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
         .chat-user-list { width: 32%; border-right: 1px solid #ddd; overflow-y: auto; background: #fafafa; }
-        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
-        .chat-user-item:hover, .chat-user-item.active { background: var(--gray); }
-        .chat-window-area { width: 68%; display: flex; flex-direction: column; background: #fff; }
+        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .chat-window-area { width: 68%; display: flex; flex-direction: column; }
         .chat-messages-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
-        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; }
         .chat-bubble.user { background: #e3f2fd; align-self: flex-start; }
         .chat-bubble.admin { background: #e8f5e9; align-self: flex-end; }
-        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; flex-direction: column; gap: 8px; background: #f9f9f9; }
-        
-        @font-face {
-            font-family: 'Anek';
-            src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
-        }
-        body, h1, h2, h3, h4, h5, h6, input, textarea, select, button { font-family: 'Anek', 'Segoe UI', sans-serif !important; }
+        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; background: #f9f9f9; display: flex; flex-direction: column; gap: 8px; }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="nav-title"><i class="fa-solid fa-shield-halved"></i> Admin Control Panel</div>
-        <button id="logoutBtn" class="btn btn-danger hidden btn-sm" onclick="handleLogout()">Logout</button>
+        <button id="logoutBtn" class="btn btn-danger hidden" onclick="handleLogout()">Logout</button>
     </nav>
 
-    <!-- Login Screen -->
     <div id="loginScreen" class="login-wrapper">
         <div class="login-box">
-            <h2 style="margin-bottom: 20px; color: var(--dark);">Admin Login</h2>
+            <h2>Admin Login</h2>
             <form onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="adminUser" required placeholder="admin">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="adminPass" required placeholder="vsk2026">
-                </div>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Login</button>
-                <p id="loginError" style="color:red; margin-top:12px; text-align:center; font-size: 14px;"></p>
+                <input type="text" id="adminUser" placeholder="Username" style="width:100%; padding:10px; margin:10px 0;">
+                <input type="password" id="adminPass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+                <button type="submit" class="btn" style="width:100%;">Login</button>
             </form>
         </div>
     </div>
 
-    <!-- Dashboard -->
     <div id="dashScreen" class="main-container hidden">
         <div class="sidebar">
-            <button class="tab-btn active" onclick="switchAdminTab('add-post-panel', this)"><i class="fa-solid fa-circle-plus"></i> Add New</button>
-            <button class="tab-btn" onclick="switchAdminTab('manage-posts-panel', this)"><i class="fa-solid fa-pen-to-square"></i> Manage Posts</button>
-            <button class="tab-btn" onclick="switchAdminTab('settings-panel', this)"><i class="fa-solid fa-gear"></i> Settings</button>
-            <button class="tab-btn" onclick="switchAdminTab('chat-panel', this)"><i class="fa-solid fa-comments"></i> Chat</button>
+            <button class="tab-btn active" onclick="switchAdminTab('add-post-panel', this)">Add New</button>
+            <button class="tab-btn" onclick="switchAdminTab('manage-posts-panel', this)">Manage Posts</button>
+            <button class="tab-btn" onclick="switchAdminTab('chat-panel', this)">Manage Chat</button>
         </div>
-
         <div class="content-pane">
-            <div id="add-post-panel" class="panel active">...</div> <!-- Rest of your original code here -->
-            <div id="manage-posts-panel" class="panel">...</div>
-            <div id="settings-panel" class="panel">...</div>
+            <div id="add-post-panel" class="panel active">... (Keep your existing form here)</div>
+            <div id="manage-posts-panel" class="panel">... (Keep your existing list here)</div>
             
-            <!-- Chat Panel -->
             <div id="chat-panel" class="panel">
-                <h3 style="margin-bottom: 20px;">Manage Chat</h3>
+                <h3>Manage Chat</h3>
                 <div class="chat-container">
-                    <div class="chat-user-list" id="chatUserList"></div>
-                    <div class="chat-window-area" id="chatWindowArea"></div>
+                    <div class="chat-user-list" id="chatUserList">Loading...</div>
+                    <div class="chat-window-area" id="chatWindowArea">Select a user</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Supabase Init
-        const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
-        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let activeChatUser = null;
+        // (Keep your existing Supabase/Init setup here)
+        
+        async function sendUserReply(userName) {
+            const inputEl = document.getElementById('adminReplyText');
+            const fileInput = document.getElementById('adminFile');
+            const replyText = inputEl.value.trim();
+            const file = fileInput.files[0];
 
-        // ... (Login, Logout, Posts logic as before) ...
+            if (!replyText && !file) return;
 
-        async function renderChatWindow(userName, messages) {
-            let messagesHtml = '';
-            messages.forEach(m => {
-                let bubbleClass = m.is_admin ? 'admin' : 'user';
-                let fileTag = m.file_url ? `<br><a href="${m.file_url}" target="_blank" style="color:blue;">[Open File/Image]</a>` : '';
-                messagesHtml += `<div class="chat-bubble ${bubbleClass}">${m.is_admin ? '<b>Admin:</b> ' : ''}${m.message || ''} ${fileTag}</div>`;
-            });
+            let file_url = '';
+            try {
+                if (file) {
+                    const fileName = 'admin_' + Date.now() + '_' + file.name;
+                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (upErr) throw upErr;
+                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                    file_url = pubData.publicUrl;
+                }
+
+                let finalMsg = replyText;
+                if (file_url) finalMsg += `\n[File: ${file_url}]`;
+
+                await supabaseClient.from('yuva_chats').insert([{
+                    sender_name: 'admin', recipient_id: userName, message: finalMsg, is_admin: true
+                }]);
+                
+                inputEl.value = '';
+                fileInput.value = '';
+                loadAdminChats();
+            } catch (e) { alert("അയക്കുന്നതിൽ പരാജയപ്പെട്ടു."); }
+        }
+
+        // Updated Chat Window Render
+        function renderChatWindow(userName, messages) {
+            let messagesHtml = messages.map(m => `
+                <div class="chat-bubble ${m.is_admin ? 'admin' : 'user'}">
+                    ${m.message.replace(/\[File: (.*?)\]/g, '<br><a href="$1" target="_blank">View Attached File</a>')}
+                </div>
+            `).join('');
 
             document.getElementById('chatWindowArea').innerHTML = `
-                <div style="padding:10px; background:#eee;">Chat: ${userName}</div>
-                <div class="chat-messages-box" id="chatMsgScroll">${messagesHtml}</div>
+                <div style="padding:10px; background:#eee;">Chat with: ${userName}</div>
+                <div class="chat-messages-box">${messagesHtml}</div>
                 <div class="chat-reply-box">
-                    <input type="text" id="adminReplyText" placeholder="മറുപടി...">
-                    <input type="file" id="adminFile">
+                    <input type="text" id="adminReplyText" placeholder="Message...">
+                    <input type="file" id="adminFile" style="font-size:12px;">
                     <button class="btn" onclick="sendUserReply('${userName}')">Send</button>
                 </div>
             `;
         }
-
-        async function sendUserReply(userName) {
-            const inputEl = document.getElementById('adminReplyText');
-            const fileEl = document.getElementById('adminFile');
-            const message = inputEl.value.trim();
-            const file = fileEl.files[0];
-
-            if (!message && !file) return;
-
-            let file_url = '';
-            if (file) {
-                const fileName = 'chat_' + Date.now() + '_' + file.name;
-                const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                if (!upErr) {
-                    const { data } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
-                    file_url = data.publicUrl;
-                }
-            }
-
-            await supabaseClient.from('yuva_chats').insert([{
-                sender_name: 'admin',
-                recipient_id: userName,
-                message: message,
-                file_url: file_url,
-                is_admin: true
-            }]);
-
-            inputEl.value = '';
-            fileEl.value = '';
-            loadAdminChats();
-        }
-        // ... rest of the code ...
     </script>
 </body>
 </html>
