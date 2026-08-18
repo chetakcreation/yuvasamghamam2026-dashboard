@@ -426,42 +426,47 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
             }
         }
 
-        async function loadChatMessages() {
-    if (!supabaseClient) return;
+        async function loadAdminChats() {
+            if (!supabaseClient) return;
+            try {
+                const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: true });
+                if (!data) return;
 
-    let userUniqueId = localStorage.getItem('vsk_user_chat_id');
-    if (!userUniqueId) return;
+                let userMap = {};
+                data.forEach(c => {
+                    if (c.sender_name && c.sender_name !== 'Admin') {
+                        if (!userMap[c.sender_name]) userMap[c.sender_name] = [];
+                        userMap[c.sender_name].push(c);
+                    }
+                });
 
-    try {
-        // ഈ യൂസർ അയച്ചതോ അല്ലെങ്കിൽ അഡ്മിൻ ഈ യൂസർക്ക് മാത്രമായി അയച്ചതോ ആയ മെസ്സേജുകൾ മാത്രം ഫെച്ച് ചെയ്യുന്നു
-        const { data, error } = await supabaseClient
-            .from('yuva_chats')
-            .select('*')
-            .or(`sender_name.eq.${userUniqueId},and(is_admin.eq.true,recipient_id.eq.${userUniqueId})`)
-            .order('id', { ascending: true });
-
-        if (error) throw error;
-
-        let chatBox = document.getElementById('chatMessages');
-        if (!chatBox) return;
-
-        let html = '<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>';
-        if (data && data.length > 0) {
-            data.forEach(m => {
-                let isMyMsg = m.sender_name === userUniqueId;
-                let msgClass = m.is_admin ? 'admin' : (isMyMsg ? 'user' : '');
-                
-                if (msgClass) {
-                    html += `<div class="chat-msg ${msgClass}">${m.message}</div>`;
+                let listHtml = '';
+                const users = Object.keys(userMap);
+                if (users.length === 0) {
+                    document.getElementById('chatUserList').innerHTML = '<p style="padding:15px; color:#777;">ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
+                    return;
                 }
-            });
+
+                users.forEach(userName => {
+                    let lastMsg = userMap[userName][userMap[userName].length - 1];
+                    let activeClass = (activeChatUser === userName) ? 'active' : '';
+                    listHtml += `
+                        <div class="chat-user-item ${activeClass}" onclick="selectUserChat('${userName}')">
+                            <strong>${userName}</strong>
+                            <p style="font-size:12px; color:#666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:3px;">${lastMsg.message || 'Media file'}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('chatUserList').innerHTML = listHtml;
+
+                if (!activeChatUser && users.length > 0) {
+                    activeChatUser = users[0];
+                }
+                if (activeChatUser && userMap[activeChatUser]) {
+                    renderChatWindow(activeChatUser, userMap[activeChatUser]);
+                }
+            } catch (e) { console.error("Load Chats Error:", e); }
         }
-        chatBox.innerHTML = html;
-        chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (e) {
-        console.error("Load Chat Error:", e);
-    }
-}
 
         function selectUserChat(userName) {
             activeChatUser = userName;
