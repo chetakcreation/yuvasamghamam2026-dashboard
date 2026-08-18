@@ -61,13 +61,13 @@
         .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #f9f9f9; }
         .chat-reply-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
         @font-face {
-            font-family: 'Anek';
-            src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
-        }
+    font-family: 'Anek';
+    src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
+}
 
-        body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
-            font-family: 'Anek', 'Segoe UI', sans-serif !important;
-        }
+body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
+    font-family: 'Anek', 'Segoe UI', sans-serif !important;
+}
     </style>
 </head>
 <body>
@@ -194,7 +194,9 @@
                         <label>Upload PNG Logo (Transparent Image)</label>
                         <input type="file" id="siteLogoFile" accept="image/png, image/jpeg">
                         <div id="currentLogoPreview" style="margin-top: 10px;"></div>
-                        <button type="button" onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)</button>
+                        <button onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)
+
+                        </button>
                     </div>
                     <div class="form-group">
                         <label><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Facebook Link</label>
@@ -399,7 +401,7 @@
                     logo_url = pubData.publicUrl;
                 }
 
-                let settingsObj = { siteTitle, fb, insta, yt, x, wa };
+                let settingsObj = { siteTitle, fb, insta, yt,x, wa };
                 if (logo_url) settingsObj.logo_url = logo_url;
 
                 localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
@@ -424,57 +426,42 @@
             }
         }
 
-        async function loadAdminChats() {
-            if (!supabaseClient) return;
+        async function loadChatMessages() {
+    if (!supabaseClient) return;
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('yuva_chats')
-                    .select('*')
-                    .order('id', { ascending: true });
+    let userUniqueId = localStorage.getItem('vsk_user_chat_id');
+    if (!userUniqueId) return;
 
-                if (error) throw error;
+    try {
+        // ഈ യൂസർ അയച്ചതോ അല്ലെങ്കിൽ അഡ്മിൻ ഈ യൂസർക്ക് മാത്രമായി അയച്ചതോ ആയ മെസ്സേജുകൾ മാത്രം ഫെച്ച് ചെയ്യുന്നു
+        const { data, error } = await supabaseClient
+            .from('yuva_chats')
+            .select('*')
+            .or(`sender_name.eq.${userUniqueId},and(is_admin.eq.true,recipient_id.eq.${userUniqueId})`)
+            .order('id', { ascending: true });
 
-                let usersMap = {};
-                if (data && data.length > 0) {
-                    data.forEach(m => {
-                        let uId = m.recipient_id || m.sender_name;
-                        if (uId && uId !== 'admin') {
-                            if (!usersMap[uId]) usersMap[uId] = [];
-                            usersMap[uId].push(m);
-                        }
-                    });
+        if (error) throw error;
+
+        let chatBox = document.getElementById('chatMessages');
+        if (!chatBox) return;
+
+        let html = '<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>';
+        if (data && data.length > 0) {
+            data.forEach(m => {
+                let isMyMsg = m.sender_name === userUniqueId;
+                let msgClass = m.is_admin ? 'admin' : (isMyMsg ? 'user' : '');
+                
+                if (msgClass) {
+                    html += `<div class="chat-msg ${msgClass}">${m.message}</div>`;
                 }
-
-                let userListHtml = '';
-                let userKeys = Object.keys(usersMap);
-
-                if (userKeys.length > 0) {
-                    userKeys.forEach(uId => {
-                        let isActive = activeChatUser === uId ? 'active' : '';
-                        userListHtml += `
-                            <div class="chat-user-item ${isActive}" onclick="selectUserChat('${uId}')">
-                                <strong>User: ${uId}</strong>
-                                <p style="font-size: 12px; color: #666; margin-top: 4px;">(${usersMap[uId].length} messages)</p>
-                            </div>
-                        `;
-                    });
-                } else {
-                    userListHtml = '<p style="padding: 15px; color: #777;">ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
-                }
-
-                document.getElementById('chatUserList').innerHTML = userListHtml;
-
-                if (activeChatUser && usersMap[activeChatUser]) {
-                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
-                } else if (userKeys.length > 0) {
-                    activeChatUser = userKeys[0];
-                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
-                }
-            } catch (e) {
-                console.error("Load Admin Chats Error:", e);
-            }
+            });
         }
+        chatBox.innerHTML = html;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (e) {
+        console.error("Load Chat Error:", e);
+    }
+}
 
         function selectUserChat(userName) {
             activeChatUser = userName;
@@ -517,14 +504,11 @@
             if (!replyText) return;
 
             try {
-                const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
-                    sender_name: 'admin',
-                    recipient_id: userName,
+                await supabaseClient.from('yuva_chats').insert([{
+                    sender_name: userName,
                     message: replyText,
                     is_admin: true
                 }]);
-                if (insErr) throw insErr;
-                
                 inputEl.value = '';
                 loadAdminChats();
             } catch (e) {
@@ -532,15 +516,15 @@
                 alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
             }
         }
-
-        function removeLogo() {
-            let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-            delete settings.logo_url;
-            localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
-            
-            alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
-            location.reload();
-        }
+        function removeLogo()
+        {
+        let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+        delete settings.logo_url;
+        localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
+        
+        alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
+        location.reload();
+    }
     </script>
 </body>
 </html>
