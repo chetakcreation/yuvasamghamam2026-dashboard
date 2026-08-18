@@ -88,11 +88,11 @@
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" id="adminUser" required placeholder="admin">
+                    <input type="text" id="adminUser">
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="adminPass" required placeholder="vsk2026">
+                    <input type="password" id="adminPass">
                 </div>
                 <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Login</button>
                 <p id="loginError" style="color:red; margin-top:12px; text-align:center; font-size: 14px;"></p>
@@ -482,8 +482,6 @@
                 console.error("Fetch Window Error:", e);
             }
         }
-
-        // മെസ്സേജിലെ ലിങ്കുകളെ ചിത്രങ്ങളോ ഡൗൺലോഡ് ഫയലുകളോ ആയി പാഴ്സ് ചെയ്ത് മാറ്റുന്ന കോഡ് (Helper function)
         function formatChatMessage(rawMessage) {
             let contentHtml = rawMessage || '';
             if (contentHtml.includes('[Image:')) {
