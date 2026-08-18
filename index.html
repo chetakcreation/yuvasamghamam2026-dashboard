@@ -61,13 +61,13 @@
         .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #f9f9f9; }
         .chat-reply-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
         @font-face {
-    font-family: 'Anek';
-    src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
-}
+            font-family: 'Anek';
+            src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
+        }
 
-body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
-    font-family: 'Anek', 'Segoe UI', sans-serif !important;
-}
+        body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
+            font-family: 'Anek', 'Segoe UI', sans-serif !important;
+        }
     </style>
 </head>
 <body>
@@ -194,9 +194,7 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
                         <label>Upload PNG Logo (Transparent Image)</label>
                         <input type="file" id="siteLogoFile" accept="image/png, image/jpeg">
                         <div id="currentLogoPreview" style="margin-top: 10px;"></div>
-                        <button onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)
-
-                        </button>
+                        <button type="button" onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)</button>
                     </div>
                     <div class="form-group">
                         <label><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Facebook Link</label>
@@ -401,7 +399,7 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
                     logo_url = pubData.publicUrl;
                 }
 
-                let settingsObj = { siteTitle, fb, insta, yt,x, wa };
+                let settingsObj = { siteTitle, fb, insta, yt, x, wa };
                 if (logo_url) settingsObj.logo_url = logo_url;
 
                 localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
@@ -428,44 +426,54 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
 
         async function loadAdminChats() {
             if (!supabaseClient) return;
+
             try {
-                const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: true });
-                if (!data) return;
+                const { data, error } = await supabaseClient
+                    .from('yuva_chats')
+                    .select('*')
+                    .order('id', { ascending: true });
 
-                let userMap = {};
-                data.forEach(c => {
-                    if (c.sender_name && c.sender_name !== 'Admin') {
-                        if (!userMap[c.sender_name]) userMap[c.sender_name] = [];
-                        userMap[c.sender_name].push(c);
-                    }
-                });
+                if (error) throw error;
 
-                let listHtml = '';
-                const users = Object.keys(userMap);
-                if (users.length === 0) {
-                    document.getElementById('chatUserList').innerHTML = '<p style="padding:15px; color:#777;">ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
-                    return;
+                let usersMap = {};
+                if (data && data.length > 0) {
+                    data.forEach(m => {
+                        let uId = m.recipient_id || m.sender_name;
+                        if (uId && uId !== 'admin') {
+                            if (!usersMap[uId]) usersMap[uId] = [];
+                            usersMap[uId].push(m);
+                        }
+                    });
                 }
 
-                users.forEach(userName => {
-                    let lastMsg = userMap[userName][userMap[userName].length - 1];
-                    let activeClass = (activeChatUser === userName) ? 'active' : '';
-                    listHtml += `
-                        <div class="chat-user-item ${activeClass}" onclick="selectUserChat('${userName}')">
-                            <strong>${userName}</strong>
-                            <p style="font-size:12px; color:#666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:3px;">${lastMsg.message || 'Media file'}</p>
-                        </div>
-                    `;
-                });
-                document.getElementById('chatUserList').innerHTML = listHtml;
+                let userListHtml = '';
+                let userKeys = Object.keys(usersMap);
 
-                if (!activeChatUser && users.length > 0) {
-                    activeChatUser = users[0];
+                if (userKeys.length > 0) {
+                    userKeys.forEach(uId => {
+                        let isActive = activeChatUser === uId ? 'active' : '';
+                        userListHtml += `
+                            <div class="chat-user-item ${isActive}" onclick="selectUserChat('${uId}')">
+                                <strong>User: ${uId}</strong>
+                                <p style="font-size: 12px; color: #666; margin-top: 4px;">(${usersMap[uId].length} messages)</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    userListHtml = '<p style="padding: 15px; color: #777;">ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
                 }
-                if (activeChatUser && userMap[activeChatUser]) {
-                    renderChatWindow(activeChatUser, userMap[activeChatUser]);
+
+                document.getElementById('chatUserList').innerHTML = userListHtml;
+
+                if (activeChatUser && usersMap[activeChatUser]) {
+                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
+                } else if (userKeys.length > 0) {
+                    activeChatUser = userKeys[0];
+                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
                 }
-            } catch (e) { console.error("Load Chats Error:", e); }
+            } catch (e) {
+                console.error("Load Admin Chats Error:", e);
+            }
         }
 
         function selectUserChat(userName) {
@@ -509,11 +517,14 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
             if (!replyText) return;
 
             try {
-                await supabaseClient.from('yuva_chats').insert([{
-                    sender_name: userName,
+                const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
+                    sender_name: 'admin',
+                    recipient_id: userName,
                     message: replyText,
                     is_admin: true
                 }]);
+                if (insErr) throw insErr;
+                
                 inputEl.value = '';
                 loadAdminChats();
             } catch (e) {
@@ -521,15 +532,15 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
                 alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
             }
         }
-        function removeLogo()
-        {
-        let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-        delete settings.logo_url;
-        localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
-        
-        alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
-        location.reload();
-    }
+
+        function removeLogo() {
+            let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+            delete settings.logo_url;
+            localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
+            
+            alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
+            location.reload();
+        }
     </script>
 </body>
 </html>
