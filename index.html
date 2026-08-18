@@ -398,7 +398,7 @@
 
                 let settingsObj = { 
                     id: 1, 
-                    siteTitle, 
+                    site_title: siteTitle, 
                     fb, 
                     insta, 
                     yt, 
@@ -437,7 +437,7 @@
                 saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
             }
 
-            if (saved.siteTitle) document.getElementById('siteTitleInput').value = saved.siteTitle;
+            if (saved.site_title) document.getElementById('siteTitleInput').value = saved.site_title;
             if (saved.fb) document.getElementById('fbLink').value = saved.fb;
             if (saved.insta) document.getElementById('instaLink').value = saved.insta;
             if (saved.yt) document.getElementById('ytLink').value = saved.yt;
