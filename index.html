@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YuvaSanghamam 2026 - Admin Dashboard</title>
+    <title>YuvaSanghamam 2026 - Admin Dashboard & Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -491,7 +491,7 @@
                 
                 let contentHtml = m.message || '';
                 
-                // ഫയലോ ഇമേജോ ഉണ്ടോയെന്ന് പരിശോധിച്ചു ഫ്രണ്ട്എൻഡിൽ ശരിയായ രീതിയിൽ റെൻഡർ ചെയ്യുന്നു
+                // ഫോട്ടോയോ ഫയലോ ആണെങ്കിൽ അത് നേരിട്ട് കാണുന്ന രീതിയിലേക്ക് മാറ്റുന്നു
                 if (contentHtml.includes('[Image:')) {
                     let parts = contentHtml.split('[Image:');
                     let textPart = parts[0];
