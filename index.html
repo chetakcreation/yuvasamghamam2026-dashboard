@@ -49,7 +49,7 @@
         .item-card { background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; }
 
         /* Messenger Chat UI */
-        .chat-container { display: flex; height: 480px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
+        .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
         .chat-user-list { width: 32%; border-right: 1px solid #ddd; overflow-y: auto; background: #fafafa; }
         .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
         .chat-user-item:hover, .chat-user-item.active { background: var(--gray); }
@@ -58,13 +58,17 @@
         .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; }
         .chat-bubble.user { background: #e3f2fd; align-self: flex-start; }
         .chat-bubble.admin { background: #e8f5e9; align-self: flex-end; }
-        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #f9f9f9; }
-        .chat-reply-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        
+        /* Chat Reply & File Input Area */
+        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; flex-direction: column; gap: 8px; background: #f9f9f9; }
+        .chat-reply-row { display: flex; gap: 8px; }
+        .chat-reply-row input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .chat-file-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
+        
         @font-face {
             font-family: 'Anek';
             src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
         }
-
         body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
             font-family: 'Anek', 'Segoe UI', sans-serif !important;
         }
@@ -194,7 +198,7 @@
                         <label>Upload PNG Logo (Transparent Image)</label>
                         <input type="file" id="siteLogoFile" accept="image/png, image/jpeg">
                         <div id="currentLogoPreview" style="margin-top: 10px;"></div>
-                        <button type="button" onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)</button>
+                        <button type="button" onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px; border-radius:4px;">ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)</button>
                     </div>
                     <div class="form-group">
                         <label><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Facebook Link</label>
@@ -426,70 +430,67 @@
 
         async function loadAdminChats() {
             if (!supabaseClient) return;
-
             try {
-                const { data, error } = await supabaseClient
-                    .from('yuva_chats')
-                    .select('*')
-                    .order('id', { ascending: true });
-
+                const { data, error } = await supabaseClient.from('yuva_chats').select('sender_name, recipient_id');
                 if (error) throw error;
 
-                let usersMap = {};
-                if (data && data.length > 0) {
-                    data.forEach(m => {
-                        let uId = m.recipient_id || m.sender_name;
-                        if (uId && uId !== 'admin') {
-                            if (!usersMap[uId]) usersMap[uId] = [];
-                            usersMap[uId].push(m);
-                        }
+                let usersSet = new Set();
+                if (data) {
+                    data.forEach(item => {
+                        if (item.sender_name && item.sender_name !== 'Admin') usersSet.add(item.sender_name);
+                        if (item.recipient_id && item.recipient_id !== 'Admin') usersSet.add(item.recipient_id);
                     });
                 }
 
-                let userListHtml = '';
-                let userKeys = Object.keys(usersMap);
-
-                if (userKeys.length > 0) {
-                    userKeys.forEach(uId => {
-                        let isActive = activeChatUser === uId ? 'active' : '';
-                        userListHtml += `
-                            <div class="chat-user-item ${isActive}" onclick="selectUserChat('${uId}')">
-                                <strong>User: ${uId}</strong>
-                                <p style="font-size: 12px; color: #666; margin-top: 4px;">(${usersMap[uId].length} messages)</p>
-                            </div>
-                        `;
+                let listHtml = '';
+                if (usersSet.size > 0) {
+                    usersSet.forEach(user => {
+                        let activeClass = (activeChatUser === user) ? 'active' : '';
+                        listHtml += `<div class="chat-user-item ${activeClass}" onclick="selectUserChat('${user}')"><strong>${user}</strong></div>`;
                     });
                 } else {
-                    userListHtml = '<p style="padding: 15px; color: #777;">ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
+                    listHtml = '<p style="padding:15px; color:#777;">യൂസർ ചാറ്റുകൾ ഒന്നുമില്ല.</p>';
                 }
+                document.getElementById('chatUserList').innerHTML = listHtml;
 
-                document.getElementById('chatUserList').innerHTML = userListHtml;
-
-                if (activeChatUser && usersMap[activeChatUser]) {
-                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
-                } else if (userKeys.length > 0) {
-                    activeChatUser = userKeys[0];
-                    renderChatWindow(activeChatUser, usersMap[activeChatUser]);
+                if (activeChatUser) {
+                    fetchUserChatWindow(activeChatUser);
                 }
             } catch (e) {
                 console.error("Load Admin Chats Error:", e);
             }
         }
 
-        function selectUserChat(userName) {
+        async function selectUserChat(userName) {
             activeChatUser = userName;
             loadAdminChats();
+            fetchUserChatWindow(userName);
         }
 
-        async function renderChatWindow(userName, messages) {
+        async function fetchUserChatWindow(userName) {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('yuva_chats')
+                    .select('*')
+                    .or(`sender_name.eq.${userName},recipient_id.eq.${userName}`)
+                    .order('id', { ascending: true });
+
+                if (error) throw error;
+                renderChatWindow(userName, data || []);
+            } catch (e) {
+                console.error("Fetch Window Error:", e);
+            }
+        }
+
+        function renderChatWindow(userName, messages) {
             let messagesHtml = '';
             messages.forEach(m => {
                 let bubbleClass = m.is_admin ? 'admin' : 'user';
                 let senderLabel = m.is_admin ? '<b>Admin:</b> ' : `<b>${m.sender_name}:</b> `;
-                let fileTag = m.file_url ? `<br><a href="${m.file_url}" target="_blank" style="color:blue;">[Attached File]</a>` : '';
                 messagesHtml += `
                     <div class="chat-bubble ${bubbleClass}">
-                        ${senderLabel} ${m.message || ''} ${fileTag}
+                        ${senderLabel} ${m.message || ''}
                     </div>
                 `;
             });
@@ -499,11 +500,17 @@
                     Chat with: ${userName}
                 </div>
                 <div class="chat-messages-box" id="chatMsgScroll">
-                    ${messagesHtml}
+                    ${messagesHtml.length > 0 ? messagesHtml : '<p style="color:#777; text-align:center;">സന്ദേശങ്ങൾ ഒന്നുമില്ല</p>'}
                 </div>
                 <div class="chat-reply-box">
-                    <input type="text" id="adminReplyText" placeholder="മറുപടി എഴുതുക..." onkeypress="if(event.key === 'Enter') sendUserReply('${userName}')">
-                    <button class="btn" onclick="sendUserReply('${userName}')">Send</button>
+                    <div class="chat-reply-row">
+                        <input type="text" id="adminReplyText" placeholder="മറുപടി എഴുതുക..." onkeypress="if(event.key === 'Enter') sendUserReply('${userName}')">
+                        <button class="btn" onclick="sendUserReply('${userName}')">Send</button>
+                    </div>
+                    <div class="chat-file-row">
+                        <span>ഫോട്ടോയോ ഫയലോ അറ്റാച്ച് ചെയ്യാം (Max 10MB):</span>
+                        <input type="file" id="adminReplyFile" style="font-size: 11px; width: 180px;">
+                    </div>
                 </div>
             `;
             document.getElementById('chatWindowArea').innerHTML = windowHtml;
@@ -513,20 +520,49 @@
 
         async function sendUserReply(userName) {
             const inputEl = document.getElementById('adminReplyText');
-            const replyText = inputEl.value.trim();
-            if (!replyText) return;
+            const fileInput = document.getElementById('adminReplyFile');
+            const replyText = inputEl ? inputEl.value.trim() : '';
+            const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
+
+            if (!replyText && !file) return;
+
+            if (file && file.size > 10 * 1024 * 1024) {
+                alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
+                return;
+            }
 
             try {
+                let fileUrl = '';
+                if (supabaseClient && file) {
+                    const fileName = 'admin_chat_' + Date.now() + '_' + file.name;
+                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (upErr) throw upErr;
+
+                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                    fileUrl = pubData.publicUrl;
+                }
+
+                let finalMessage = replyText;
+                if (fileUrl) {
+                    if (fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i)) {
+                        finalMessage = `${replyText}\n[Image: ${fileUrl}]`;
+                    } else {
+                        finalMessage = `${replyText}\n[File: ${fileUrl}]`;
+                    }
+                }
+
                 const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
-                    sender_name: 'admin',
+                    sender_name: 'Admin',
                     recipient_id: userName,
-                    message: replyText,
+                    message: finalMessage,
                     is_admin: true
                 }]);
+
                 if (insErr) throw insErr;
-                
-                inputEl.value = '';
-                loadAdminChats();
+
+                if (inputEl) inputEl.value = '';
+                if (fileInput) fileInput.value = '';
+                fetchUserChatWindow(userName);
             } catch (e) {
                 console.error("Reply Error:", e);
                 alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
@@ -537,7 +573,6 @@
             let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
             delete settings.logo_url;
             localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
-            
             alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
             location.reload();
         }
