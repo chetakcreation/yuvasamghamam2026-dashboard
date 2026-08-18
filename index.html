@@ -15,14 +15,24 @@
         .nav-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
         
         .main-container { display: flex; max-width: 1300px; margin: 30px auto; padding: 0 20px; width: 100%; gap: 30px; flex: 1; }
+        
+        /* Login Screen */
         .login-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 70vh; }
         .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
         
+        /* Sidebar Navigation */
         .sidebar { width: 280px; display: flex; flex-direction: column; gap: 10px; }
-        .tab-btn { padding: 15px 20px; background: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 15px; text-align: left; display: flex; align-items: center; gap: 12px; color: var(--dark); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s; }
-        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-btn { 
+            padding: 15px 20px; background: white; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: bold; font-size: 15px; text-align: left; 
+            display: flex; align-items: center; gap: 12px; color: var(--dark);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s; 
+        }
+        .tab-btn:hover { background: var(--gray); }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255, 155, 49, 0.3); }
 
-        .content-pane { flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        /* Content Area */
+        .content-pane { flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 550px; }
         .panel { display: none; }
         .panel.active { display: block; }
         .hidden { display: none !important; }
@@ -31,59 +41,199 @@
         .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 11px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
         
-        .btn { padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn { padding: 10px 22px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
         .btn-danger { background: #d9534f; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-        .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
-        .chat-user-list { width: 30%; border-right: 1px solid #ddd; overflow-y: auto; }
-        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .chat-user-item.active { background: var(--gray); }
-        .chat-window-area { width: 70%; display: flex; flex-direction: column; }
-        .chat-messages-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 80%; }
+        .item-card { background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; }
+
+        /* Messenger Chat UI */
+        .chat-container { display: flex; height: 480px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
+        .chat-user-list { width: 32%; border-right: 1px solid #ddd; overflow-y: auto; background: #fafafa; }
+        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
+        .chat-user-item:hover, .chat-user-item.active { background: var(--gray); }
+        .chat-window-area { width: 68%; display: flex; flex-direction: column; background: #fff; }
+        .chat-messages-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
+        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; }
         .chat-bubble.user { background: #e3f2fd; align-self: flex-start; }
         .chat-bubble.admin { background: #e8f5e9; align-self: flex-end; }
-        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; background: #f9f9f9; display: flex; flex-direction: column; gap: 8px; }
+        .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #f9f9f9; }
+        .chat-reply-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        @font-face {
+    font-family: 'Anek';
+    src: url('https://selzpjnwbohrjefcgbpj.supabase.co/storage/v1/object/public/uploads/AnekMalayalam-Regular_0.ttf') format('truetype');
+}
+
+body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
+    font-family: 'Anek', 'Segoe UI', sans-serif !important;
+}
     </style>
 </head>
 <body>
 
     <nav>
         <div class="nav-title"><i class="fa-solid fa-shield-halved"></i> Admin Control Panel</div>
-        <button id="logoutBtn" class="btn btn-danger hidden" onclick="handleLogout()">Logout</button>
+        <button id="logoutBtn" class="btn btn-danger hidden btn-sm" onclick="handleLogout()">Logout</button>
     </nav>
 
+    <!-- Login Screen -->
     <div id="loginScreen" class="login-wrapper">
         <div class="login-box">
-            <h2>Admin Login</h2>
+            <h2 style="margin-bottom: 20px; color: var(--dark);">Admin Login</h2>
             <form onsubmit="handleLogin(event)">
-                <div class="form-group"><label>Username</label><input type="text" id="adminUser" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="adminPass" required></div>
-                <button type="submit" class="btn" style="width:100%">Login</button>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="adminUser" required placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPass" required placeholder="vsk2026">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Login</button>
+                <p id="loginError" style="color:red; margin-top:12px; text-align:center; font-size: 14px;"></p>
             </form>
         </div>
     </div>
 
+    <!-- Dashboard Main Layout -->
     <div id="dashScreen" class="main-container hidden">
+        <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <button class="tab-btn active" onclick="switchAdminTab('add-post-panel', this)">Add New</button>
-            <button class="tab-btn" onclick="switchAdminTab('chat-panel', this)">Manage Chat</button>
+            <button class="tab-btn active" onclick="switchAdminTab('add-post-panel', this)">
+                <i class="fa-solid fa-circle-plus"></i> Add New
+            </button>
+            <button class="tab-btn" onclick="switchAdminTab('manage-posts-panel', this)">
+                <i class="fa-solid fa-pen-to-square"></i> Manage Existing Post
+            </button>
+            <button class="tab-btn" onclick="switchAdminTab('settings-panel', this)">
+                <i class="fa-solid fa-gear"></i> Site Settings
+            </button>
+            <button class="tab-btn" onclick="switchAdminTab('chat-panel', this)">
+                <i class="fa-solid fa-comments"></i> Manage Chat
+            </button>
         </div>
 
+        <!-- Content Area -->
         <div class="content-pane">
+            <!-- 1. Add New Post -->
             <div id="add-post-panel" class="panel active">
-                <h3>Add New Post</h3>
+                <h3 style="margin-bottom: 20px;">Add New Post</h3>
                 <form id="postForm" onsubmit="handleSavePost(event)">
-                    <!-- Add form fields here -->
-                    <button type="submit" class="btn">Publish</button>
+                    <input type="hidden" id="postId">
+                    <div class="form-group">
+                        <label>Sanghajilla (സംഘജില്ല) *</label>
+                        <select id="postSanghajilla" required>
+                            <option value="">-- തിരഞ്ഞെടുക്കുക --</option>
+                            <option value="Thiruvananthapuram Mahanagar">Thiruvananthapuram Mahanagar</option>
+                            <option value="Attingal">Attingal</option>
+                            <option value="Nedumangadu">Nedumangadu</option>
+                            <option value="Thiruvananthapuram Gramam">Thiruvananthapuram Gramam</option>
+                            <option value="Punalur">Punalur</option>
+                            <option value="Kollam Mahanagar">Kollam Mahanagar</option>
+                            <option value="Kollam Gramam">Kollam Gramam</option>
+                            <option value="Sabarigiri">Sabarigiri</option>
+                            <option value="Pathanamthitta">Pathanamthitta</option>
+                            <option value="Alappuzha">Alappuzha</option>
+                            <option value="Chengannur">Chengannur</option>
+                            <option value="Ponkunnam">Ponkunnam</option>
+                            <option value="Vaikom">Vaikom</option>
+                            <option value="Kottayam">Kottayam</option>
+                            <option value="Thodupuzha">Thodupuzha</option>
+                            <option value="Devikulam">Devikulam</option>
+                            <option value="Idukki">Idukki</option>
+                            <option value="Moovattupuzha">Moovattupuzha</option>
+                            <option value="Aluva">Aluva</option>
+                            <option value="Kochi Mahanagar">Kochi Mahanagar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tab / Category *</label>
+                        <select id="postTab" required>
+                            <option value="Photos">Photos</option>
+                            <option value="Videos">Videos</option>
+                            <option value="Brochure">Brochure</option>
+                            <option value="News">News</option>
+                            <option value="Promo Reel">Promo Reel</option>
+                            <option value="Reels&videos">Reels & Videos</option>
+                            <option value="Social Media Posters">Social Media Posters</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="postTitle" placeholder="ടൈറ്റിൽ നൽകുക">
+                    </div>
+                    <div class="form-group">
+                        <label>Description / Content</label>
+                        <textarea id="postDesc" rows="3" placeholder="വിവരങ്ങൾ എഴുതുക"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Media File (Image / Video / PDF)</label>
+                        <input type="file" id="postFile">
+                    </div>
+                    <button type="submit" class="btn" id="savePostBtn">Publish Post</button>
+                    <button type="button" class="btn btn-danger" onclick="resetPostForm()" style="margin-left: 10px;">Reset</button>
                 </form>
             </div>
 
+            <!-- 2. Manage Existing Posts -->
+            <div id="manage-posts-panel" class="panel">
+                <h3 style="margin-bottom: 20px;">Manage Existing Posts</h3>
+                <div id="adminPostsList">ലോഡ് ചെയ്യുന്നു..</div>
+            </div>
+
+            <!-- 3. Site Settings -->
+            <div id="settings-panel" class="panel">
+                <h3 style="margin-bottom: 20px;">Site Settings (Logo & Social Links)</h3>
+                <form id="settingsForm" onsubmit="handleSaveSettings(event)">
+                    <div class="form-group">
+                        <label>Website Title / Main Logo Text</label>
+                        <input type="text" id="siteTitleInput" placeholder="യുവസംഗമം 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload PNG Logo (Transparent Image)</label>
+                        <input type="file" id="siteLogoFile" accept="image/png, image/jpeg">
+                        <div id="currentLogoPreview" style="margin-top: 10px;"></div>
+                        <button onclick="removeLogo()" style="background:#dc3545; color:white; border:none; padding:5px 10px; cursor:pointer; margin-top:5px;"> ലോഗോ നീക്കം ചെയ്യുക (Remove Logo)
+
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Facebook Link</label>
+                        <input type="url" id="fbLink" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-instagram" style="color:#e4405f;"></i> Instagram Link</label>
+                        <input type="url" id="instaLink" placeholder="https://instagram.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-youtube" style="color:#ff0000;"></i> YouTube Link</label>
+                        <input type="url" id="ytLink" placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-x-twitter" style="color:#000000;"></i> X (Twitter) Link</label>
+                        <input type="url" id="xLink" placeholder="https://x.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i> WhatsApp Link</label>
+                        <input type="url" id="waLink" placeholder="https://whatsapp.com/...">
+                    </div>
+                    <button type="submit" class="btn">Save Settings</button>
+                </form>
+            </div>
+
+            <!-- 4. Manage Chat -->
             <div id="chat-panel" class="panel">
-                <h3>User Chat</h3>
+                <h3 style="margin-bottom: 20px;">User Chat Inquiries (Messenger Style)</h3>
                 <div class="chat-container">
-                    <div class="chat-user-list" id="chatUserList"></div>
-                    <div class="chat-window-area" id="chatWindowArea">Select a user to chat.</div>
+                    <div class="chat-user-list" id="chatUserList">
+                        <p style="padding: 15px; color: #777;">ലോഡ് ചെയ്യുന്നു...</p>
+                    </div>
+                    <div class="chat-window-area" id="chatWindowArea">
+                        <div style="display: flex; justify-content: center; align-items: center; height: 100%; color: #777;">
+                            ചാറ്റ് തിരഞ്ഞെടുക്കുക
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,67 +242,289 @@
     <script>
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
-        let supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let currentActiveUser = null;
+        let supabaseClient = null;
+        let activeChatUser = null;
+
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) { console.error("Supabase Init Error:", e); }
 
         function handleLogin(e) {
             e.preventDefault();
-            if(document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'vsk2026') {
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            if (u === 'admin' && p === 'vsk2026') {
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('dashScreen').classList.remove('hidden');
                 document.getElementById('logoutBtn').classList.remove('hidden');
+                loadAdminPosts();
                 loadAdminChats();
+                loadSiteSettings();
+            } else {
+                document.getElementById('loginError').innerText = 'തെറ്റായ യൂസർനെയിം അല്ലെങ്കിൽ പാസ്‌വേഡ്!';
             }
         }
 
-        async function loadAdminChats() {
-            const { data } = await supabaseClient.from('yuva_chats').select('sender_name').distinct();
-            const list = document.getElementById('chatUserList');
-            list.innerHTML = data.map(u => `<div class="chat-user-item" onclick="selectUser('${u.sender_name}')">${u.sender_name}</div>`).join('');
+        function handleLogout() {
+            document.getElementById('dashScreen').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
         }
 
-        function selectUser(userName) {
-            currentActiveUser = userName;
-            loadMessages(userName);
+        function switchAdminTab(panelId, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+            if (panelId === 'chat-panel') loadAdminChats();
+            if (panelId === 'manage-posts-panel') loadAdminPosts();
         }
 
-        async function loadMessages(userName) {
-            const { data } = await supabaseClient.from('yuva_chats').select('*').or(`sender_name.eq.${userName},recipient_id.eq.${userName}`).order('id', {ascending: true});
-            document.getElementById('chatWindowArea').innerHTML = `
-                <div class="chat-messages-box" id="msgBox">
-                    ${data.map(m => `<div class="chat-bubble ${m.is_admin ? 'admin' : 'user'}">${m.message}</div>`).join('')}
+        async function handleSavePost(e) {
+            e.preventDefault();
+            if (!supabaseClient) { alert('Supabase കണക്റ്റ് ചെയ്തിട്ടില്ല!'); return; }
+
+            const id = document.getElementById('postId').value;
+            const sanghajilla = document.getElementById('postSanghajilla').value;
+            const tab_category = document.getElementById('postTab').value;
+            const title = document.getElementById('postTitle').value;
+            const description = document.getElementById('postDesc').value;
+            const fileInput = document.getElementById('postFile');
+            const file = fileInput.files[0];
+
+            let file_url = '';
+            try {
+                if (file) {
+                    const fileName = Date.now() + '_' + file.name;
+                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (upErr) throw upErr;
+                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                    file_url = pubData.publicUrl;
+                }
+
+                let postData = { sanghajilla, tab_category, title, description };
+                if (file_url) postData.file_url = file_url;
+
+                if (id) {
+                    const { error: updErr } = await supabaseClient.from('yuva_posts').update(postData).eq('id', id);
+                    if (updErr) throw updErr;
+                    alert('പോസ്റ്റ് വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു!');
+                } else {
+                    const { error: insErr } = await supabaseClient.from('yuva_posts').insert([postData]);
+                    if (insErr) throw insErr;
+                    alert('പുതിയ പോസ്റ്റ് വിജയകരമായി പബ്ലിഷ് ചെയ്തു!');
+                }
+
+                resetPostForm();
+                loadAdminPosts();
+            } catch (err) {
+                console.error("Save Post Error:", err);
+                alert("പോസ്റ്റ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.");
+            }
+        }
+
+        async function loadAdminPosts() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
+                if (error) throw error;
+                let html = '';
+                if (data && data.length > 0) {
+                    data.forEach(p => {
+                        html += `
+                            <div class="item-card">
+                                <div>
+                                    <strong>${p.title || 'Untitled'}</strong>
+                                    <p style="font-size:12px; color:#666; margin-top:3px;">${p.sanghajilla} | ${p.tab_category}</p>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn btn-sm" onclick="editPost(${p.id}, '${p.sanghajilla}', '${p.tab_category}', \`${p.title || ''}\`, \`${p.description || ''}\`)">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deletePost(${p.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html = '<p>പോസ്റ്റുകൾ ഒന്നുമില്ല.</p>';
+                }
+                document.getElementById('adminPostsList').innerHTML = html;
+            } catch (err) {
+                console.error("Load Posts Error:", err);
+            }
+        }
+
+        function editPost(id, sanghajilla, tab, title, desc) {
+            document.getElementById('postId').value = id;
+            document.getElementById('postSanghajilla').value = sanghajilla;
+            document.getElementById('postTab').value = tab;
+            document.getElementById('postTitle').value = title;
+            document.getElementById('postDesc').value = desc;
+            switchAdminTab('add-post-panel', document.querySelectorAll('.tab-btn')[0]);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deletePost(id) {
+            if (confirm('ഈ പോസ്റ്റ് ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ?')) {
+                try {
+                    await supabaseClient.from('yuva_posts').delete().eq('id', id);
+                    loadAdminPosts();
+                } catch (e) { console.error("Delete Error:", e); }
+            }
+        }
+
+        function resetPostForm() {
+            document.getElementById('postForm').reset();
+            document.getElementById('postId').value = '';
+        }
+
+        async function handleSaveSettings(e) {
+            e.preventDefault();
+            if (!supabaseClient) return;
+
+            const siteTitle = document.getElementById('siteTitleInput').value;
+            const logoFile = document.getElementById('siteLogoFile').files[0];
+            const fb = document.getElementById('fbLink').value;
+            const insta = document.getElementById('instaLink').value;
+            const yt = document.getElementById('ytLink').value;
+            const x = document.getElementById('xLink').value;
+            const wa = document.getElementById('waLink').value;
+
+            try {
+                let logo_url = '';
+                if (logoFile) {
+                    const fileName = 'logo_' + Date.now() + '_' + logoFile.name;
+                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, logoFile);
+                    if (upErr) throw upErr;
+                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                    logo_url = pubData.publicUrl;
+                }
+
+                let settingsObj = { siteTitle, fb, insta, yt,x, wa };
+                if (logo_url) settingsObj.logo_url = logo_url;
+
+                localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
+                alert('സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി സേവ് ചെയ്തു!');
+                loadSiteSettings();
+            } catch (err) {
+                console.error("Settings Error:", err);
+                alert('സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.');
+            }
+        }
+
+        function loadSiteSettings() {
+            const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+            if (saved.siteTitle) document.getElementById('siteTitleInput').value = saved.siteTitle;
+            if (saved.fb) document.getElementById('fbLink').value = saved.fb;
+            if (saved.insta) document.getElementById('instaLink').value = saved.insta;
+            if (saved.yt) document.getElementById('ytLink').value = saved.yt;
+            if (saved.x) document.getElementById('xLink').value = saved.x;
+            if (saved.wa) document.getElementById('waLink').value = saved.wa;
+            if (saved.logo_url) {
+                document.getElementById('currentLogoPreview').innerHTML = `<img src="${saved.logo_url}" alt="Logo" style="height: 40px; vertical-align: middle;"> <span style="font-size:12px; color:green; margin-left:8px;">(Current Logo Active)</span>`;
+            }
+        }
+
+        async function loadChatMessages() {
+    if (!supabaseClient) return;
+
+    let userUniqueId = localStorage.getItem('vsk_user_chat_id');
+    if (!userUniqueId) return;
+
+    try {
+        // ഈ യൂസർ അയച്ചതോ അല്ലെങ്കിൽ അഡ്മിൻ ഈ യൂസർക്ക് മാത്രമായി അയച്ചതോ ആയ മെസ്സേജുകൾ മാത്രം ഫെച്ച് ചെയ്യുന്നു
+        const { data, error } = await supabaseClient
+            .from('yuva_chats')
+            .select('*')
+            .or(`sender_name.eq.${userUniqueId},and(is_admin.eq.true,recipient_id.eq.${userUniqueId})`)
+            .order('id', { ascending: true });
+
+        if (error) throw error;
+
+        let chatBox = document.getElementById('chatMessages');
+        if (!chatBox) return;
+
+        let html = '<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>';
+        if (data && data.length > 0) {
+            data.forEach(m => {
+                let isMyMsg = m.sender_name === userUniqueId;
+                let msgClass = m.is_admin ? 'admin' : (isMyMsg ? 'user' : '');
+                
+                if (msgClass) {
+                    html += `<div class="chat-msg ${msgClass}">${m.message}</div>`;
+                }
+            });
+        }
+        chatBox.innerHTML = html;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (e) {
+        console.error("Load Chat Error:", e);
+    }
+}
+
+        function selectUserChat(userName) {
+            activeChatUser = userName;
+            loadAdminChats();
+        }
+
+        async function renderChatWindow(userName, messages) {
+            let messagesHtml = '';
+            messages.forEach(m => {
+                let bubbleClass = m.is_admin ? 'admin' : 'user';
+                let senderLabel = m.is_admin ? '<b>Admin:</b> ' : `<b>${m.sender_name}:</b> `;
+                let fileTag = m.file_url ? `<br><a href="${m.file_url}" target="_blank" style="color:blue;">[Attached File]</a>` : '';
+                messagesHtml += `
+                    <div class="chat-bubble ${bubbleClass}">
+                        ${senderLabel} ${m.message || ''} ${fileTag}
+                    </div>
+                `;
+            });
+
+            let windowHtml = `
+                <div style="padding: 12px 15px; background: var(--dark); color: white; font-weight: bold; font-size: 14px;">
+                    Chat with: ${userName}
+                </div>
+                <div class="chat-messages-box" id="chatMsgScroll">
+                    ${messagesHtml}
                 </div>
                 <div class="chat-reply-box">
-                    <input type="text" id="adminReplyText" placeholder="Reply...">
-                    <input type="file" id="adminFile">
-                    <button class="btn" onclick="sendAdminReply()">Send</button>
+                    <input type="text" id="adminReplyText" placeholder="മറുപടി എഴുതുക..." onkeypress="if(event.key === 'Enter') sendUserReply('${userName}')">
+                    <button class="btn" onclick="sendUserReply('${userName}')">Send</button>
                 </div>
             `;
+            document.getElementById('chatWindowArea').innerHTML = windowHtml;
+            const scrollBox = document.getElementById('chatMsgScroll');
+            if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
         }
 
-        async function sendAdminReply() {
-            const msg = document.getElementById('adminReplyText').value;
-            const file = document.getElementById('adminFile').files[0];
-            let fileUrl = '';
+        async function sendUserReply(userName) {
+            const inputEl = document.getElementById('adminReplyText');
+            const replyText = inputEl.value.trim();
+            if (!replyText) return;
 
-            if(file) {
-                const { data } = await supabaseClient.storage.from('uploads').upload(Date.now() + file.name, file);
-                fileUrl = supabaseClient.storage.from('uploads').getPublicUrl(data.path).data.publicUrl;
+            try {
+                await supabaseClient.from('yuva_chats').insert([{
+                    sender_name: userName,
+                    message: replyText,
+                    is_admin: true
+                }]);
+                inputEl.value = '';
+                loadAdminChats();
+            } catch (e) {
+                console.error("Reply Error:", e);
+                alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
             }
-
-            await supabaseClient.from('yuva_chats').insert([{
-                sender_name: 'Admin',
-                recipient_id: currentActiveUser,
-                message: msg + (fileUrl ? `\nFile: ${fileUrl}` : ''),
-                is_admin: true
-            }]);
-            loadMessages(currentActiveUser);
         }
+        function removeLogo()
+        {
+        let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+        delete settings.logo_url;
+        localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
         
-        function switchAdminTab(id, btn) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
+        alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
+        location.reload();
+    }
     </script>
 </body>
 </html>
