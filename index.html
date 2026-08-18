@@ -55,7 +55,7 @@
         .chat-user-item:hover, .chat-user-item.active { background: var(--gray); }
         .chat-window-area { width: 68%; display: flex; flex-direction: column; background: #fff; }
         .chat-messages-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
-        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        .chat-bubble { padding: 10px 14px; border-radius: 8px; max-width: 75%; font-size: 14px; line-height: 1.4; word-break: break-word; }
         .chat-bubble.user { background: #e3f2fd; align-self: flex-start; }
         .chat-bubble.admin { background: #e8f5e9; align-self: flex-end; }
         
@@ -243,7 +243,7 @@
 
     <script>
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6InNub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
         let supabaseClient = null;
         let activeChatUser = null;
 
@@ -488,9 +488,26 @@
             messages.forEach(m => {
                 let bubbleClass = m.is_admin ? 'admin' : 'user';
                 let senderLabel = m.is_admin ? '<b>Admin:</b> ' : `<b>${m.sender_name}:</b> `;
+                
+                let contentHtml = m.message || '';
+                
+                // ഫയലോ ഇമേജോ ഉണ്ടോയെന്ന് പരിശോധിച്ചു ഫ്രണ്ട്എൻഡിൽ ശരിയായ രീതിയിൽ റെൻഡർ ചെയ്യുന്നു
+                if (contentHtml.includes('[Image:')) {
+                    let parts = contentHtml.split('[Image:');
+                    let textPart = parts[0];
+                    let imgUrl = parts[1].replace(']', '').trim();
+                    contentHtml = `${textPart}<br><img src="${imgUrl}" style="max-width: 200px; border-radius: 6px; margin-top: 5px; display: block; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">`;
+                } else if (contentHtml.includes('[File:')) {
+                    let parts = contentHtml.split('[File:');
+                    let textPart = parts[0];
+                    let fileUrl = parts[1].replace(']', '').trim();
+                    let fileName = fileUrl.split('/').pop().split('_').pop() || 'Download File';
+                    contentHtml = `${textPart}<br><a href="${fileUrl}" target="_blank" download style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 6px 10px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; text-decoration: none; font-size: 13px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</a>`;
+                }
+
                 messagesHtml += `
                     <div class="chat-bubble ${bubbleClass}">
-                        ${senderLabel} ${m.message || ''}
+                        ${senderLabel} ${contentHtml}
                     </div>
                 `;
             });
