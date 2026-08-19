@@ -174,12 +174,9 @@
                     <div class="form-group">
                         <label>Media Files (ഒന്നിലധികം ഫയലുകൾ ഒരേസമയം തിരഞ്ഞെടുക്കാം)</label>
                         <input type="file" id="postFile" multiple>
-                        <!-- Upload Progress Bar -->
+                        <!-- Upload Status Text -->
                         <div id="uploadProgressContainer" class="hidden" style="margin-top: 10px;">
-                            <div style="background: #e0e0e0; border-radius: 4px; overflow: hidden; height: 20px; width: 100%;">
-                                <div id="uploadProgressBar" style="background: var(--primary); width: 0%; height: 100%; text-align: center; color: white; font-size: 12px; line-height: 20px; transition: width 0.2s;">0%</div>
-                            </div>
-                            <p id="uploadStatusText" style="font-size: 12px; margin-top: 5px; color: #555;"></p>
+                            <p id="uploadStatusText" style="font-size: 13px; font-weight: bold; color: var(--primary);"></p>
                         </div>
                     </div>
                     <button type="submit" class="btn" id="savePostBtn">Publish Post</button>
@@ -304,7 +301,6 @@
             const files = fileInput.files;
 
             const progressContainer = document.getElementById('uploadProgressContainer');
-            const progressBar = document.getElementById('uploadProgressBar');
             const statusText = document.getElementById('uploadStatusText');
 
             try {
@@ -318,20 +314,23 @@
                         let file = files[i];
                         
                         const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                        // ഫയൽ പേരുകൾ തമ്മിൽ ഒരേസമയം ഒവർറൈറ്റ് ആയിപോകാതിരിക്കാൻ ലൂപ്പ് ഇൻഡക്സ് (i) കൂടി ചേർത്തിരിക്കുന്നു
                         const fileName = Date.now() + '_' + i + '_' + cleanFileName;
                         
                         statusText.innerText = `അപ്‌ലോഡ് ചെയ്യുന്നു (${i + 1}/${totalFiles}): ${file.name}`;
-                        progressBar.style.width = '0%';
-                        progressBar.innerText = '0%';
 
-                        let publicUrl = await uploadFileWithProgress(file, fileName, (percent) => {
-                            progressBar.style.width = percent + '%';
-                            progressBar.innerText = percent + '%';
-                        });
+                        // Supabase ഒഫീഷ്യൽ SDK ഉപയോഗിച്ച് ഫയൽ അപ്‌ലോഡ് ചെയ്യുന്നു
+                        const { error: uploadErr } = await supabaseClient.storage
+                            .from('uploads')
+                            .upload(fileName, file);
 
-                        if (publicUrl) {
-                            uploadedUrls.push(publicUrl);
+                        if (uploadErr) throw uploadErr;
+
+                        const { data: pubData } = supabaseClient.storage
+                            .from('uploads')
+                            .getPublicUrl(fileName);
+
+                        if (pubData && pubData.publicUrl) {
+                            uploadedUrls.push(pubData.publicUrl);
                         }
                     }
                 }
@@ -358,43 +357,9 @@
                 loadAdminPosts();
             } catch (err) {
                 console.error("Save Post Error:", err);
-                alert("പോസ്റ്റ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.");
+                alert("പോസ്റ്റ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + (err.message || err));
                 if(progressContainer) progressContainer.classList.add('hidden');
             }
-        }
-
-        function uploadFileWithProgress(file, fileName, onProgress) {
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                const url = `${SUPABASE_URL}/storage/v1/object/uploads/${fileName}`;
-
-                xhr.open('POST', url, true);
-                xhr.setRequestHeader('apikey', SUPABASE_KEY);
-                xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_KEY}`);
-                xhr.setRequestHeader('x-upsert', 'true');
-
-                xhr.upload.onprogress = function (e) {
-                    if (e.lengthComputable) {
-                        const percentComplete = Math.round((e.loaded / e.total) * 100);
-                        onProgress(percentComplete);
-                    }
-                };
-
-                xhr.onload = function () {
-                    if (xhr.status === 200 || xhr.status === 201) {
-                        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
-                        resolve(publicUrl);
-                    } else {
-                        reject(new Error('Upload failed with status ' + xhr.status));
-                    }
-                };
-
-                xhr.onerror = function () {
-                    reject(new Error('Network error during upload'));
-                };
-
-                xhr.send(file);
-            });
         }
 
         async function loadAdminPosts() {
