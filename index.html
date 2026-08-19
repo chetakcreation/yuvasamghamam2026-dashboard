@@ -316,7 +316,10 @@
 
                     for (let i = 0; i < totalFiles; i++) {
                         let file = files[i];
-                        const fileName = Date.now() + '_' + file.name;
+                        
+                        // ഫയൽ നാമത്തിലെ സ്പേസും പ്രത്യേക ചിഹ്നങ്ങളും ഒഴിവാക്കുന്നു (Clean file name)
+                        const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                        const fileName = Date.now() + '_' + cleanFileName;
                         
                         statusText.innerText = `അപ്‌ലോഡ് ചെയ്യുന്നു (${i + 1}/${totalFiles}): ${file.name}`;
                         progressBar.style.width = '0%';
@@ -673,7 +676,8 @@
             try {
                 let fileUrl = '';
                 if (supabaseClient && file) {
-                    const fileName = 'admin_chat_' + Date.now() + '_' + file.name;
+                    const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                    const fileName = 'admin_chat_' + Date.now() + '_' + cleanFileName;
                     const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
                     if (upErr) throw upErr;
 
