@@ -317,7 +317,6 @@
                     for (let i = 0; i < totalFiles; i++) {
                         let file = files[i];
                         
-                        // ഫയൽ നാമത്തിലെ സ്പേസും പ്രത്യേക ചിഹ്നങ്ങളും ഒഴിവാക്കുന്നു (Clean file name)
                         const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
                         const fileName = Date.now() + '_' + cleanFileName;
                         
@@ -337,8 +336,10 @@
                 }
 
                 let postData = { sanghajilla, tab_category, title, description };
+                
+                // അപ്‌ലോഡ് ചെയ്ത എല്ലാ ഫയലുകളുടെയും ലിങ്കുകൾ കോമ ഇട്ട് (Comma-separated) സേവ് ചെയ്യുന്നു
                 if (uploadedUrls.length > 0) {
-                    postData.file_url = uploadedUrls[0]; 
+                    postData.file_url = uploadedUrls.join(','); 
                 }
 
                 if (id) {
