@@ -381,57 +381,105 @@
             document.getElementById('postId').value = '';
         }
 
-        async function handleSaveSettings(e) {
-            e.preventDefault();
-            if (!supabaseClient) return;
-
-            const siteTitle = document.getElementById('siteTitleInput').value;
-            const logoFile = document.getElementById('siteLogoFile').files[0];
-            const fb = document.getElementById('fbLink').value;
-            const insta = document.getElementById('instaLink').value;
-            const yt = document.getElementById('ytLink').value;
-            const x = document.getElementById('xLink').value;
-            const wa = document.getElementById('waLink').value;
-
-            try {
-                let logo_url = '';
-                if (logoFile) {
-                    const fileName = 'logo_' + Date.now() + '_' + logoFile.name;
-                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, logoFile);
-                    if (upErr) throw upErr;
-                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
-                    logo_url = pubData.publicUrl;
-                }
-
-                let settingsObj = { siteTitle, fb, insta, yt, x, wa };
+        async function handleSaveSettings(event) {
+            event.preventDefault();
+            if (!supabaseClient) { alert('Supabase കണക്റ്റ് ചെയ്തിട്ടില്ല!'); return; }
+            
+            const siteTitle = document.getElementById('siteTitleInput').value.trim();
+            const fb = document.getElementById('fbLink').value.trim();
+            const insta = document.getElementById('instaLink').value.trim();
+            const yt = document.getElementById('ytLink').value.trim();
+            const x = document.getElementById('xLink').value.trim();
+            const wa = document.getElementById('waLink') ? document.getElementById('waLink').value.trim() : '';
+            
+            let logoUrl = window.currentLogoUrl || '';
+            
+            const fileInput = document.getElementById('siteLogoFile');
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = 'logo_' + Date.now() + '_' + file.name;
                 
-                // നിലവിലുള്ള ലോഗോ ഉണ്ടെങ്കിൽ അത് മാഞ്ഞുപോകാതെ നിലനിർത്തുന്നു
-                let currentSettings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-                if (logo_url) {
-                    settingsObj.logo_url = logo_url;
-                } else if (currentSettings.logo_url) {
-                    settingsObj.logo_url = currentSettings.logo_url;
+                const { error: uploadError } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                if (uploadError) {
+                    alert("ലോഗോ അപ്‌ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + uploadError.message);
+                    return;
                 }
+                
+                const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                logoUrl = pubData.publicUrl;
+            }
 
-                localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
-                alert('സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി സേവ് ചെയ്തു! മെയിൻ പേജ് റിഫ്രഷ് ചെയ്ത് മാറ്റങ്ങൾ കാണുക.');
+            const { error } = await supabaseClient
+                .from('site_settings')
+                .update({
+                    site_title: siteTitle,
+                    logo_url: logoUrl,
+                    fb: fb,
+                    insta: insta,
+                    yt: yt,
+                    x: x,
+                    wa: wa
+                })
+                .eq('id', 1);
+
+            if (error) {
+                alert("സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + error.message);
+            } else {
+                alert("സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി Supabase-ൽ സേവ് ചെയ്തു! മെയിൻ പേജ് റിഫ്രഷ് ചെയ്ത് മാറ്റങ്ങൾ കാണുക.");
                 loadSiteSettings();
-            } catch (err) {
-                console.error("Settings Error:", err);
-                alert('സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.');
             }
         }
 
-        function loadSiteSettings() {
-            const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-            if (saved.siteTitle) document.getElementById('siteTitleInput').value = saved.siteTitle;
-            if (saved.fb) document.getElementById('fbLink').value = saved.fb;
-            if (saved.insta) document.getElementById('instaLink').value = saved.insta;
-            if (saved.yt) document.getElementById('ytLink').value = saved.yt;
-            if (saved.x) document.getElementById('xLink').value = saved.x;
-            if (saved.wa) document.getElementById('waLink').value = saved.wa;
-            if (saved.logo_url) {
-                document.getElementById('currentLogoPreview').innerHTML = `<img src="${saved.logo_url}" alt="Logo" style="height: 40px; vertical-align: middle;"> <span style="font-size:12px; color:green; margin-left:8px;">(Current Logo Active)</span>`;
+        async function loadSiteSettings() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_settings')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    document.getElementById('siteTitleInput').value = data.site_title || '';
+                    document.getElementById('fbLink').value = data.fb || '';
+                    document.getElementById('instaLink').value = data.insta || '';
+                    document.getElementById('ytLink').value = data.yt || '';
+                    document.getElementById('xLink').value = data.x || '';
+                    document.getElementById('waLink').value = data.wa || '';
+                    
+                    window.currentLogoUrl = data.logo_url || '';
+                    if (data.logo_url) {
+                        document.getElementById('currentLogoPreview').innerHTML = `<img src="${data.logo_url}" alt="Logo" style="height: 40px; vertical-align: middle;"> <span style="font-size:12px; color:green; margin-left:8px;">(Current Logo Active)</span>`;
+                    } else {
+                        document.getElementById('currentLogoPreview').innerHTML = '';
+                    }
+                }
+            } catch (e) {
+                console.error("Load Site Settings Error:", e);
+            }
+        }
+
+        async function removeLogo() {
+            if (!supabaseClient) return;
+            if (confirm('ലോഗോ നീക്കം ചെയ്യണമെന്ന് ഉറപ്പാണോ?')) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_settings')
+                        .update({ logo_url: '' })
+                        .eq('id', 1);
+
+                    if (error) throw error;
+
+                    window.currentLogoUrl = '';
+                    document.getElementById('currentLogoPreview').innerHTML = '';
+                    alert("ലോഗോ വിജയകരമായി നീക്കം ചെയ്തു!");
+                    loadSiteSettings();
+                } catch (e) {
+                    console.error("Remove Logo Error:", e);
+                    alert("ലോഗോ നീക്കം ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.");
+                }
             }
         }
 
@@ -593,14 +641,6 @@
                 console.error("Reply Error:", e);
                 alert("മറുപടി അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
             }
-        }
-
-        function removeLogo() {
-            let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-            delete settings.logo_url;
-            localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
-            alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
-            location.reload();
         }
     </script>
 </body>
