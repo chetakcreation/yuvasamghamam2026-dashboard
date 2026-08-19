@@ -16,9 +16,11 @@
         
         .main-container { display: flex; max-width: 1300px; margin: 30px auto; padding: 0 20px; width: 100%; gap: 30px; flex: 1; }
         
+        /* Login Screen */
         .login-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 70vh; }
         .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
         
+        /* Sidebar Navigation */
         .sidebar { width: 280px; display: flex; flex-direction: column; gap: 10px; }
         .tab-btn { 
             padding: 15px 20px; background: white; border: none; border-radius: 10px; 
@@ -29,6 +31,7 @@
         .tab-btn:hover { background: var(--gray); }
         .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(255, 155, 49, 0.3); }
 
+        /* Content Area */
         .content-pane { flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 550px; }
         .panel { display: none; }
         .panel.active { display: block; }
@@ -45,6 +48,7 @@
 
         .item-card { background: var(--light); padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; }
 
+        /* Messenger Chat UI */
         .chat-container { display: flex; height: 500px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
         .chat-user-list { width: 32%; border-right: 1px solid #ddd; overflow-y: auto; background: #fafafa; }
         .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
@@ -55,6 +59,7 @@
         .chat-bubble.user { background: #e3f2fd; align-self: flex-start; }
         .chat-bubble.admin { background: #e8f5e9; align-self: flex-end; }
         
+        /* Chat Reply & File Input Area */
         .chat-reply-box { padding: 12px; border-top: 1px solid #ddd; display: flex; flex-direction: column; gap: 8px; background: #f9f9f9; }
         .chat-reply-row { display: flex; gap: 8px; }
         .chat-reply-row input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
@@ -76,6 +81,7 @@
         <button id="logoutBtn" class="btn btn-danger hidden btn-sm" onclick="handleLogout()">Logout</button>
     </nav>
 
+    <!-- Login Screen -->
     <div id="loginScreen" class="login-wrapper">
         <div class="login-box">
             <h2 style="margin-bottom: 20px; color: var(--dark);">Admin Login</h2>
@@ -94,7 +100,9 @@
         </div>
     </div>
 
+    <!-- Dashboard Main Layout -->
     <div id="dashScreen" class="main-container hidden">
+        <!-- Sidebar Navigation -->
         <div class="sidebar">
             <button class="tab-btn active" onclick="switchAdminTab('add-post-panel', this)">
                 <i class="fa-solid fa-circle-plus"></i> Add New
@@ -110,7 +118,9 @@
             </button>
         </div>
 
+        <!-- Content Area -->
         <div class="content-pane">
+            <!-- 1. Add New Post -->
             <div id="add-post-panel" class="panel active">
                 <h3 style="margin-bottom: 20px;">Add New Post</h3>
                 <form id="postForm" onsubmit="handleSavePost(event)">
@@ -170,11 +180,13 @@
                 </form>
             </div>
 
+            <!-- 2. Manage Existing Posts -->
             <div id="manage-posts-panel" class="panel">
                 <h3 style="margin-bottom: 20px;">Manage Existing Posts</h3>
                 <div id="adminPostsList">ലോഡ് ചെയ്യുന്നു..</div>
             </div>
 
+            <!-- 3. Site Settings -->
             <div id="settings-panel" class="panel">
                 <h3 style="margin-bottom: 20px;">Site Settings (Logo & Social Links)</h3>
                 <form id="settingsForm" onsubmit="handleSaveSettings(event)">
@@ -212,6 +224,7 @@
                 </form>
             </div>
 
+            <!-- 4. Manage Chat -->
             <div id="chat-panel" class="panel">
                 <h3 style="margin-bottom: 20px;">User Chat Inquiries (Messenger Style)</h3>
                 <div class="chat-container">
@@ -390,54 +403,28 @@
                     logo_url = pubData.publicUrl;
                 }
 
-                let currentSettings = {};
-                try {
-                    const { data } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
-                    if (data) currentSettings = data;
-                } catch(err) {}
-
-                let settingsObj = { 
-                    id: 1, 
-                    site_title: siteTitle, 
-                    fb, 
-                    insta, 
-                    yt, 
-                    x, 
-                    wa,
-                    logo_url: logo_url ? logo_url : (currentSettings.logo_url || '')
-                };
-
-                const { error: upsertErr } = await supabaseClient.from('site_settings').upsert(settingsObj, { onConflict: 'id' });
-                if (upsertErr) throw upsertErr;
+                let settingsObj = { siteTitle, fb, insta, yt, x, wa };
+                
+                // നിലവിലുള്ള ലോഗോ ഉണ്ടെങ്കിൽ അത് മാഞ്ഞുപോകാതെ നിലനിർത്തുന്നു
+                let currentSettings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+                if (logo_url) {
+                    settingsObj.logo_url = logo_url;
+                } else if (currentSettings.logo_url) {
+                    settingsObj.logo_url = currentSettings.logo_url;
+                }
 
                 localStorage.setItem('vsk_site_settings', JSON.stringify(settingsObj));
                 alert('സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി സേവ് ചെയ്തു! മെയിൻ പേജ് റിഫ്രഷ് ചെയ്ത് മാറ്റങ്ങൾ കാണുക.');
                 loadSiteSettings();
             } catch (err) {
                 console.error("Settings Error:", err);
-                alert('സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: ' + (err.message || err));
+                alert('സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.');
             }
         }
 
-        async function loadSiteSettings() {
-            let saved = {};
-            if (supabaseClient) {
-                try {
-                    const { data, error } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
-                    if (data && !error) {
-                        saved = data;
-                        localStorage.setItem('vsk_site_settings', JSON.stringify(data));
-                    } else {
-                        saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-                    }
-                } catch(e) {
-                    saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-                }
-            } else {
-                saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
-            }
-
-            if (saved.site_title) document.getElementById('siteTitleInput').value = saved.site_title;
+        function loadSiteSettings() {
+            const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+            if (saved.siteTitle) document.getElementById('siteTitleInput').value = saved.siteTitle;
             if (saved.fb) document.getElementById('fbLink').value = saved.fb;
             if (saved.insta) document.getElementById('instaLink').value = saved.insta;
             if (saved.yt) document.getElementById('ytLink').value = saved.yt;
@@ -608,20 +595,9 @@
             }
         }
 
-        async function removeLogo() {
-            let settings = {};
-            try {
-                const { data } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
-                if (data) settings = data;
-            } catch(e){}
-            
+        function removeLogo() {
+            let settings = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
             delete settings.logo_url;
-            settings.id = 1;
-
-            if (supabaseClient) {
-                await supabaseClient.from('site_settings').upsert(settings, { onConflict: 'id' });
-            }
-
             localStorage.setItem('vsk_site_settings', JSON.stringify(settings));
             alert("ലോഗോ നീക്കം ചെയ്തു! ഇനി ടെക്സ്റ്റ് ലോഗോ മാത്രം കാണിക്കും.");
             location.reload();
