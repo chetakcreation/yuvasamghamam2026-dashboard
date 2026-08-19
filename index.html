@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YuvaSangamam 2026 - Admin Dashboard & User Chat</title>
+    <title>YuvaSanghamam 2026 - Admin Dashboard & User Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -172,8 +172,15 @@
                         <textarea id="postDesc" rows="3" placeholder="വിവരങ്ങൾ എഴുതുക"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Media File (Image / Video / PDF)</label>
-                        <input type="file" id="postFile">
+                        <label>Media Files (ഒന്നിലധികം ഫയലുകൾ ഒരേസമയം തിരഞ്ഞെടുക്കാം)</label>
+                        <input type="file" id="postFile" multiple>
+                        <!-- Upload Progress Bar -->
+                        <div id="uploadProgressContainer" class="hidden" style="margin-top: 10px;">
+                            <div style="background: #e0e0e0; border-radius: 4px; overflow: hidden; height: 20px; width: 100%;">
+                                <div id="uploadProgressBar" style="background: var(--primary); width: 0%; height: 100%; text-align: center; color: white; font-size: 12px; line-height: 20px; transition: width 0.2s;">0%</div>
+                            </div>
+                            <p id="uploadStatusText" style="font-size: 12px; margin-top: 5px; color: #555;"></p>
+                        </div>
                     </div>
                     <button type="submit" class="btn" id="savePostBtn">Publish Post</button>
                     <button type="button" class="btn btn-danger" onclick="resetPostForm()" style="margin-left: 10px;">Reset</button>
@@ -294,20 +301,42 @@
             const title = document.getElementById('postTitle').value;
             const description = document.getElementById('postDesc').value;
             const fileInput = document.getElementById('postFile');
-            const file = fileInput.files[0];
+            const files = fileInput.files;
 
-            let file_url = '';
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const statusText = document.getElementById('uploadStatusText');
+
             try {
-                if (file) {
-                    const fileName = Date.now() + '_' + file.name;
-                    const { error: upErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                    if (upErr) throw upErr;
-                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
-                    file_url = pubData.publicUrl;
+                let uploadedUrls = [];
+
+                if (files.length > 0) {
+                    progressContainer.classList.remove('hidden');
+                    let totalFiles = files.length;
+
+                    for (let i = 0; i < totalFiles; i++) {
+                        let file = files[i];
+                        const fileName = Date.now() + '_' + file.name;
+                        
+                        statusText.innerText = `അപ്‌ലോഡ് ചെയ്യുന്നു (${i + 1}/${totalFiles}): ${file.name}`;
+                        progressBar.style.width = '0%';
+                        progressBar.innerText = '0%';
+
+                        let publicUrl = await uploadFileWithProgress(file, fileName, (percent) => {
+                            progressBar.style.width = percent + '%';
+                            progressBar.innerText = percent + '%';
+                        });
+
+                        if (publicUrl) {
+                            uploadedUrls.push(publicUrl);
+                        }
+                    }
                 }
 
                 let postData = { sanghajilla, tab_category, title, description };
-                if (file_url) postData.file_url = file_url;
+                if (uploadedUrls.length > 0) {
+                    postData.file_url = uploadedUrls[0]; 
+                }
 
                 if (id) {
                     const { error: updErr } = await supabaseClient.from('yuva_posts').update(postData).eq('id', id);
@@ -319,12 +348,48 @@
                     alert('പുതിയ പോസ്റ്റ് വിജയകരമായി പബ്ലിഷ് ചെയ്തു!');
                 }
 
+                progressContainer.classList.add('hidden');
                 resetPostForm();
                 loadAdminPosts();
             } catch (err) {
                 console.error("Save Post Error:", err);
                 alert("പോസ്റ്റ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.");
+                if(progressContainer) progressContainer.classList.add('hidden');
             }
+        }
+
+        function uploadFileWithProgress(file, fileName, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const url = `${SUPABASE_URL}/storage/v1/object/uploads/${fileName}`;
+
+                xhr.open('POST', url, true);
+                xhr.setRequestHeader('apikey', SUPABASE_KEY);
+                xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_KEY}`);
+                xhr.setRequestHeader('x-upsert', 'true');
+
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percentComplete);
+                    }
+                };
+
+                xhr.onload = function () {
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/uploads/${fileName}`;
+                        resolve(publicUrl);
+                    } else {
+                        reject(new Error('Upload failed with status ' + xhr.status));
+                    }
+                };
+
+                xhr.onerror = function () {
+                    reject(new Error('Network error during upload'));
+                };
+
+                xhr.send(file);
+            });
         }
 
         async function loadAdminPosts() {
@@ -425,7 +490,7 @@
             if (error) {
                 alert("സെറ്റിങ്സ് സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + error.message);
             } else {
-                alert("സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി Supabase-ൽ സേവ് ചെയ്തു! മെയിൻ പേജ് റിഫ്രഷ് ചെയ്ത് മാറ്റങ്ങൾ കാണുക.");
+                alert("സൈറ്റ് സെറ്റിങ്സ് വിജയകരമായി Supabase-ൽ സേവ് ചെയ്തു!");
                 loadSiteSettings();
             }
         }
