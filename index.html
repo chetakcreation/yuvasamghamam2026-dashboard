@@ -318,7 +318,8 @@
                         let file = files[i];
                         
                         const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                        const fileName = Date.now() + '_' + cleanFileName;
+                        // ഫയൽ പേരുകൾ തമ്മിൽ ഒരേസമയം ഒവർറൈറ്റ് ആയിപോകാതിരിക്കാൻ ലൂപ്പ് ഇൻഡക്സ് (i) കൂടി ചേർത്തിരിക്കുന്നു
+                        const fileName = Date.now() + '_' + i + '_' + cleanFileName;
                         
                         statusText.innerText = `അപ്‌ലോഡ് ചെയ്യുന്നു (${i + 1}/${totalFiles}): ${file.name}`;
                         progressBar.style.width = '0%';
@@ -337,7 +338,7 @@
 
                 let postData = { sanghajilla, tab_category, title, description };
                 
-                // അപ്‌ലോഡ് ചെയ്ത എല്ലാ ഫയലുകളുടെയും ലിങ്കുകൾ കോമ ഇട്ട് (Comma-separated) സേവ് ചെയ്യുന്നു
+                // എല്ലാ ഫയൽ ലിങ്കുകളും കോമ ഇട്ട് ജോയിൻ ചെയ്ത് ഒന്നിച്ച് സേവ് ചെയ്യുന്നു
                 if (uploadedUrls.length > 0) {
                     postData.file_url = uploadedUrls.join(','); 
                 }
